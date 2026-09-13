@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flight Lab - Realistic Flight Simulator</title>
+    <title>Flight Simulator - Photorealistic Sky & Environment</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -26,7 +26,7 @@
         #top-bar {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 56px;
-            background: linear-gradient(180deg, rgba(8, 14, 26, 0.92) 0%, rgba(8, 14, 26, 0.4) 100%);
+            background: linear-gradient(180deg, rgba(8, 14, 26, 0.9) 0%, rgba(8, 14, 26, 0.3) 100%);
             border-bottom: 1px solid rgba(56, 189, 248, 0.25);
             z-index: 10;
             display: flex; align-items: center; justify-content: space-between;
@@ -52,7 +52,7 @@
         .telem-lbl { font-size: 9px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; }
         .telem-val { font-size: 18px; font-weight: 800; color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
 
-        /* SPEED / THROTTLE CONTROL PANEL (LEFT SIDE) */
+        /* SPEED / THROTTLE CONTROL PANEL */
         #throttle-panel {
             position: absolute;
             left: 20px; top: 50%;
@@ -134,7 +134,7 @@
         #controls-modal h3 { color: #38bdf8; margin-bottom: 12px; font-size: 16px; }
         #controls-modal p { font-size: 12px; color: #94a3b8; line-height: 1.8; margin-bottom: 16px; }
     </style>
-    <!-- Three.js & Sky Shader Extensions -->
+    <!-- Three.js & Extensions -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Sky.js"></script>
 </head>
@@ -146,17 +146,17 @@
     <div id="top-bar">
         <div class="brand-title">
             <span>FLIGHT LAB</span>
-            <span class="brand-sub">/ REAL-WORLD SIMULATION</span>
+            <span class="brand-sub">/ REAL-WORLD ENGINE</span>
         </div>
 
         <div class="telemetry-group">
             <div class="telem-box">
                 <div class="telem-lbl">AIRSPEED</div>
-                <div id="speed-val" class="telem-val">400 km/h</div>
+                <div id="speed-val" class="telem-val">450 km/h</div>
             </div>
             <div class="telem-box">
                 <div class="telem-lbl">ALTITUDE</div>
-                <div id="alt-val" class="telem-val">50 m</div>
+                <div id="alt-val" class="telem-val">75 m</div>
             </div>
             <div class="telem-box">
                 <div class="telem-lbl">HEADING</div>
@@ -165,16 +165,16 @@
         </div>
     </div>
 
-    <!-- SPEED / THROTTLE CONTROL SLIDER -->
+    <!-- SPEED SLIDER -->
     <div id="throttle-panel">
         <div class="throttle-lbl">THROTTLE</div>
         <div class="slider-wrapper">
-            <input type="range" id="throttle-slider" min="0" max="1200" value="400" orient="vertical">
+            <input type="range" id="throttle-slider" min="0" max="1400" value="450" orient="vertical">
         </div>
-        <div class="speed-readout" id="throttle-readout">400 KM/H</div>
+        <div class="speed-readout" id="throttle-readout">450 KM/H</div>
     </div>
 
-    <!-- BOTTOM CONTROL BAR -->
+    <!-- BOTTOM CONTROLS -->
     <div id="bottom-bar">
         <button class="ctrl-btn btn-connect" id="connect-btn">Connect Serial</button>
         <button class="ctrl-btn" id="recenter-btn">Centre Controller</button>
@@ -204,12 +204,14 @@
     </div>
 
     <script>
-        // --- 1. THREE.JS REALISTIC SCENE & PHYSICAL SKY SHADER ---
+        // --- 1. REALISTIC SCENE & ATMOSPHERIC LIGHTING ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0xcce0ff, 0.0006);
+        
+        // Photorealistic haze fog
+        scene.fog = new THREE.FogExp2(0xcce2ff, 0.00035);
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 5000);
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 8000);
         let cameraMode = 'TPP';
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -218,70 +220,110 @@
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 0.9;
+        renderer.toneMappingExposure = 1.0;
         container.appendChild(renderer.domElement);
 
-        // Realistic Sun Light & Ambient Atmospheric Lighting
-        const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.7);
+        // Sunlight & Skylight
+        const ambientLight = new THREE.AmbientLight(0xc7d2fe, 0.85);
         scene.add(ambientLight);
 
-        const sunLight = new THREE.DirectionalLight(0xfffbeb, 1.6);
-        sunLight.position.set(500, 1000, 500);
+        const sunLight = new THREE.DirectionalLight(0xffedd5, 2.0);
+        sunLight.position.set(800, 1200, 600);
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 2048;
         sunLight.shadow.mapSize.height = 2048;
         sunLight.shadow.camera.near = 10;
-        sunLight.shadow.camera.far = 2500;
+        sunLight.shadow.camera.far = 3000;
         scene.add(sunLight);
 
-        // Procedural Physical Sky (Rayleigh Scattering)
+        // Procedural Physical Sky (Rayleigh Scattering Shader)
         const sky = new THREE.Sky();
         sky.scale.setScalar(450000);
         scene.add(sky);
 
         const skyUniforms = sky.material.uniforms;
-        skyUniforms['turbidity'].value = 8;
-        skyUniforms['rayleigh'].value = 2;
+        skyUniforms['turbidity'].value = 6.0;
+        skyUniforms['rayleigh'].value = 1.8;
         skyUniforms['mieCoefficient'].value = 0.005;
-        skyUniforms['mieDirectionalG'].value = 0.8;
+        skyUniforms['mieDirectionalG'].value = 0.82;
 
         const sunPosition = new THREE.Vector3();
-        const phi = THREE.MathUtils.degToRad(68); // Daytime Sun Angle
+        const phi = THREE.MathUtils.degToRad(72); // Sunset / Afternoon Sun Elevation
         const theta = THREE.MathUtils.degToRad(180);
         sunPosition.setFromSphericalCoords(1, phi, theta);
         sky.material.uniforms['sunPosition'].value.copy(sunPosition);
 
-        // --- 2. HIGH-DETAIL CANARD DELTA JET FIGHTER (EUROFIGHTER/RAFALE TYPE) ---
+        // --- 2. VOLUMETRIC PROCEDURAL CLOUD SCENE ---
+        function createCloudTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            
+            const grad = ctx.createRadialGradient(128, 128, 10, 128, 128, 128);
+            grad.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
+            grad.addColorStop(0.5, 'rgba(240, 244, 248, 0.4)');
+            grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(128, 128, 128, 0, Math.PI * 2);
+            ctx.fill();
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        const cloudTex = createCloudTexture();
+        const cloudsGroup = new THREE.Group();
+
+        for (let i = 0; i < 120; i++) {
+            const cloudMat = new THREE.SpriteMaterial({
+                map: cloudTex,
+                transparent: true,
+                opacity: 0.55,
+                depthWrite: false
+            });
+            const cloud = new THREE.Sprite(cloudMat);
+            cloud.position.set(
+                (Math.random() - 0.5) * 6000,
+                220 + Math.random() * 180,
+                (Math.random() - 0.5) * 6000
+            );
+            const size = 300 + Math.random() * 400;
+            cloud.scale.set(size, size * 0.5, 1);
+            cloudsGroup.add(cloud);
+        }
+        scene.add(cloudsGroup);
+
+        // --- 3. HIGH-DETAIL CANARD DELTA JET FIGHTER ---
         function createDeltaFighter() {
             const jet = new THREE.Group();
 
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.25 });
-            const wingMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.7, roughness: 0.3 });
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.85, roughness: 0.2 });
+            const wingMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.8, roughness: 0.25 });
             const darkMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9, roughness: 0.1 });
-            const glassMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.9, roughness: 0.1, transparent: true, opacity: 0.7 });
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.95, roughness: 0.05, transparent: true, opacity: 0.75 });
             const engineFlameMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
 
-            // Slept Curved Nose
+            // Nose
             const noseGeo = new THREE.ConeGeometry(0.65, 5.0, 16);
             const nose = new THREE.Mesh(noseGeo, bodyMat);
             nose.rotation.x = -Math.PI / 2;
             nose.position.z = -3.5;
             jet.add(nose);
 
-            // Sleek Main Fuselage
+            // Fuselage
             const bodyGeo = new THREE.CylinderGeometry(0.7, 0.85, 7.5, 16);
             const body = new THREE.Mesh(bodyGeo, bodyMat);
             body.rotation.x = -Math.PI / 2;
             jet.add(body);
 
-            // Tinted Metallic Cockpit Canopy
+            // Cockpit
             const cockpitGeo = new THREE.SphereGeometry(0.5, 16, 16);
             cockpitGeo.scale(0.85, 0.75, 2.8);
             const cockpit = new THREE.Mesh(cockpitGeo, glassMat);
             cockpit.position.set(0, 0.5, -1.2);
             jet.add(cockpit);
 
-            // Front Canard Wings (Foreplanes)
+            // Canard Wings
             const canardShape = new THREE.Shape();
             canardShape.moveTo(0, 0);
             canardShape.lineTo(1.8, -0.8);
@@ -300,7 +342,7 @@
             canardR.position.x = -0.3;
             jet.add(canardR);
 
-            // Large Swept Delta Wings
+            // Delta Wings
             const deltaWingShape = new THREE.Shape();
             deltaWingShape.moveTo(0, 1.2);
             deltaWingShape.lineTo(5.5, -3.2);
@@ -316,7 +358,7 @@
             wings.position.set(0, -0.1, 1.0);
             jet.add(wings);
 
-            // Vertical Stabilizer Fin
+            // Tailfin
             const finShape = new THREE.Shape();
             finShape.moveTo(0, 0);
             finShape.lineTo(0, 2.8);
@@ -330,7 +372,7 @@
             fin.rotation.y = Math.PI / 2;
             jet.add(fin);
 
-            // Twin Engine Turbofans
+            // Engine Afterburners
             const engGeo = new THREE.CylinderGeometry(0.42, 0.42, 1.2, 16);
             const engL = new THREE.Mesh(engGeo, darkMat);
             engL.rotation.x = Math.PI / 2;
@@ -341,201 +383,177 @@
             engR.position.x = 0.48;
             jet.add(engR);
 
-            // Glowing Flame Afterburners
-            const flameGeo = new THREE.ConeGeometry(0.35, 1.8, 12);
+            // Flame Thrusters
+            const flameGeo = new THREE.ConeGeometry(0.35, 2.2, 12);
             const flameL = new THREE.Mesh(flameGeo, engineFlameMat);
             flameL.rotation.x = -Math.PI / 2;
-            flameL.position.set(-0.48, -0.1, 4.8);
+            flameL.position.set(-0.48, -0.1, 5.0);
             jet.add(flameL);
 
             const flameR = flameL.clone();
             flameR.position.x = 0.48;
             jet.add(flameR);
 
-            // Underwing External Fuel Tanks
-            const tankGeo = new THREE.CylinderGeometry(0.2, 0.2, 3.2, 12);
-            const tankL = new THREE.Mesh(tankGeo, darkMat);
-            tankL.rotation.x = Math.PI / 2;
-            tankL.position.set(-2.5, -0.4, 0.8);
-            jet.add(tankL);
-
-            const tankR = tankL.clone();
-            tankR.position.x = 2.5;
-            jet.add(tankR);
-
-            jet.scale.set(1.3, 1.3, 1.3);
+            jet.scale.set(1.4, 1.4, 1.4);
             return jet;
         }
 
         const jetGroup = createDeltaFighter();
-        jetGroup.position.set(0, 50, 0);
+        jetGroup.position.set(0, 75, 0);
         scene.add(jetGroup);
 
-        // --- 3. REALISTIC PROCEDURAL BUILDING TEXTURES & ENVIRONMENT ---
+        // --- 4. HIGH-REALISM ARCHITECTURAL TEXTURES & ENVIRONMENT ---
         
-        // Procedural Glass Curtain Wall Texture for Real Skyscrapers
-        function createSkyscraperTexture() {
+        // Real-World Glass & Office Window Canvas Texture
+        function createRealSkyscraperTexture() {
             const canvas = document.createElement('canvas');
-            canvas.width = 512; canvas.height = 512;
+            canvas.width = 1024; canvas.height = 1024;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, 512, 512);
+            
+            // Dark Metallic Wall Base
+            ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, 1024, 1024);
 
-            // Grid Glass Panels
-            ctx.fillStyle = '#38bdf8';
-            ctx.strokeStyle = '#334155';
-            ctx.lineWidth = 2;
+            // Metallic Column Strips
+            ctx.fillStyle = '#334155';
+            for (let x = 0; x < 1024; x += 64) {
+                ctx.fillRect(x, 0, 8, 1024);
+            }
 
-            for (let y = 16; y < 512; y += 32) {
-                for (let x = 16; x < 512; x += 32) {
-                    if (Math.random() > 0.3) {
-                        ctx.fillRect(x, y, 20, 24);
+            // Window Glass Panels with Emissive Night Light Variation
+            for (let y = 16; y < 1024; y += 32) {
+                for (let x = 12; x < 1024; x += 64) {
+                    const rnd = Math.random();
+                    if (rnd > 0.4) {
+                        ctx.fillStyle = '#1e293b'; // Reflective Tinted Glass
+                    } else if (rnd > 0.1) {
+                        ctx.fillStyle = '#38bdf8'; // Sky Reflection Glass
                     } else {
-                        ctx.fillStyle = '#fef08a'; // Lit indoor office window
-                        ctx.fillRect(x, y, 20, 24);
-                        ctx.fillStyle = '#38bdf8';
+                        ctx.fillStyle = '#fef08a'; // Lit Office Interior
                     }
-                    ctx.strokeRect(x, y, 20, 24);
+                    ctx.fillRect(x, y, 44, 20);
+                    ctx.strokeStyle = '#0284c7';
+                    ctx.strokeRect(x, y, 44, 20);
                 }
             }
             return new THREE.CanvasTexture(canvas);
         }
 
-        const bldgTex = createSkyscraperTexture();
-        bldgTex.wrapS = THREE.RepeatWrapping;
-        bldgTex.wrapT = THREE.RepeatWrapping;
+        const glassBldgTex = createRealSkyscraperTexture();
+        glassBldgTex.wrapS = THREE.RepeatWrapping;
+        glassBldgTex.wrapT = THREE.RepeatWrapping;
 
-        // Tree Factories
+        // Vegetation Trees
         const trunkMat = new THREE.MeshStandardMaterial({ color: 0x3d2314, roughness: 0.9 });
-        const pineLeafMat = new THREE.MeshStandardMaterial({ color: 0x14532d, roughness: 0.6 });
-        const oakLeafMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.6 });
+        const leafMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.6 });
 
-        function createPineTree() {
-            const tree = new THREE.Group();
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.45, 4, 8), trunkMat);
-            trunk.position.y = 2;
-            tree.add(trunk);
-
-            for (let i = 0; i < 4; i++) {
-                const leaves = new THREE.Mesh(new THREE.ConeGeometry(2.6 - i * 0.5, 3.5, 8), pineLeafMat);
-                leaves.position.y = 3.5 + i * 1.8;
-                tree.add(leaves);
-            }
-            return tree;
-        }
-
-        function createOakTree() {
+        function createTree() {
             const tree = new THREE.Group();
             const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 5, 8), trunkMat);
             trunk.position.y = 2.5;
             tree.add(trunk);
 
-            const crown = new THREE.Mesh(new THREE.DodecahedronGeometry(3.5, 2), oakLeafMat);
+            const crown = new THREE.Mesh(new THREE.DodecahedronGeometry(3.5, 2), leafMat);
             crown.position.y = 6.5;
             tree.add(crown);
             return tree;
         }
 
-        // --- 4. INFINITE REALISTIC CITY CHUNK SYSTEM ---
+        // --- 5. INFINITE CITY SYSTEM WITH REAL SKYSCRAPERS ---
         const activeChunks = new Map();
-        const CHUNK_SIZE = 260;
+        const CHUNK_SIZE = 300;
         const RENDER_DISTANCE = 3;
+
+        function generateRealBuilding(x, z, totalHeight) {
+            const bGroup = new THREE.Group();
+
+            const baseWidth = 36 + Math.random() * 20;
+            const baseDepth = 36 + Math.random() * 20;
+
+            // Tier 1: Ground Podium
+            const pHeight = totalHeight * 0.25;
+            const pGeo = new THREE.BoxGeometry(baseWidth, pHeight, baseDepth);
+            const pTex = glassBldgTex.clone(); pTex.repeat.set(2, Math.floor(pHeight / 12));
+            const pMat = new THREE.MeshStandardMaterial({ map: pTex, metalness: 0.7, roughness: 0.2 });
+            const podium = new THREE.Mesh(pGeo, pMat);
+            podium.position.y = pHeight / 2;
+            bGroup.add(podium);
+
+            // Tier 2: Glass Tower Body
+            const tHeight = totalHeight * 0.75;
+            const tGeo = new THREE.BoxGeometry(baseWidth * 0.8, tHeight, baseDepth * 0.8);
+            const tTex = glassBldgTex.clone(); tTex.repeat.set(2, Math.floor(tHeight / 12));
+            const tMat = new THREE.MeshStandardMaterial({ map: tTex, metalness: 0.85, roughness: 0.15 });
+            const tower = new THREE.Mesh(tGeo, tMat);
+            tower.position.y = pHeight + tHeight / 2;
+            bGroup.add(tower);
+
+            // Tier 3: Rooftop HVAC Air Handlers & Spire Tip
+            const hvac = new THREE.Mesh(new THREE.BoxGeometry(baseWidth * 0.4, 4, baseDepth * 0.4), new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.9 }));
+            hvac.position.y = totalHeight + 2;
+            bGroup.add(hvac);
+
+            if (totalHeight > 120) {
+                const spire = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 1.2, 30, 8), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.95 }));
+                spire.position.y = totalHeight + 15;
+                bGroup.add(spire);
+            }
+
+            bGroup.position.set(x, 0, z);
+            return bGroup;
+        }
 
         function generateChunk(cx, cz) {
             const chunkGroup = new THREE.Group();
             const startX = cx * CHUNK_SIZE;
             const startZ = cz * CHUNK_SIZE;
 
-            // Ground Grass
+            // Ground Terrain
             const ground = new THREE.Mesh(
                 new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE),
-                new THREE.MeshStandardMaterial({ color: 0x1e3a1e, roughness: 0.9 })
+                new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 })
             );
             ground.rotation.x = -Math.PI / 2;
             ground.position.set(startX + CHUNK_SIZE / 2, 0, startZ + CHUNK_SIZE / 2);
             chunkGroup.add(ground);
 
-            // Asphalt Roads
-            const roadMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.8 });
-            const roadV = new THREE.Mesh(new THREE.PlaneGeometry(32, CHUNK_SIZE), roadMat);
+            // Asphalt Multi-Lane Roads
+            const roadMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8 });
+            const roadV = new THREE.Mesh(new THREE.PlaneGeometry(38, CHUNK_SIZE), roadMat);
             roadV.rotation.x = -Math.PI / 2;
             roadV.position.set(startX + CHUNK_SIZE / 2, 0.1, startZ + CHUNK_SIZE / 2);
             chunkGroup.add(roadV);
 
-            const roadH = new THREE.Mesh(new THREE.PlaneGeometry(CHUNK_SIZE, 32), roadMat);
+            const roadH = new THREE.Mesh(new THREE.PlaneGeometry(CHUNK_SIZE, 38), roadMat);
             roadH.rotation.x = -Math.PI / 2;
             roadH.position.set(startX + CHUNK_SIZE / 2, 0.1, startZ + CHUNK_SIZE / 2);
             chunkGroup.add(roadH);
 
-            // Sidewalk Curbs
-            const curbMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.7 });
-            const curbL = new THREE.Mesh(new THREE.BoxGeometry(3, 0.3, CHUNK_SIZE), curbMat);
-            curbL.position.set(startX + CHUNK_SIZE / 2 - 17.5, 0.15, startZ + CHUNK_SIZE / 2);
-            chunkGroup.add(curbL);
-
-            const curbR = curbL.clone();
-            curbR.position.x = startX + CHUNK_SIZE / 2 + 17.5;
-            chunkGroup.add(curbR);
-
             const localObstacles = [];
 
-            // Sidewalk Trees & Vegetation
-            for (let z = startZ + 20; z < startZ + CHUNK_SIZE; z += 38) {
-                const tree1 = (Math.random() > 0.5) ? createPineTree() : createOakTree();
-                tree1.position.set(startX + CHUNK_SIZE / 2 - 21, 0, z);
+            // Trees Along Sidewalks
+            for (let z = startZ + 20; z < startZ + CHUNK_SIZE; z += 45) {
+                const tree1 = createTree();
+                tree1.position.set(startX + CHUNK_SIZE / 2 - 25, 0, z);
                 chunkGroup.add(tree1);
 
-                const tree2 = (Math.random() > 0.5) ? createPineTree() : createOakTree();
-                tree2.position.set(startX + CHUNK_SIZE / 2 + 21, 0, z);
+                const tree2 = createTree();
+                tree2.position.set(startX + CHUNK_SIZE / 2 + 25, 0, z);
                 chunkGroup.add(tree2);
             }
 
-            // Real-World Style Layered Skyscrapers
+            // Real Skyscraper Blocks
             const buildingPositions = [
-                { x: startX + 65, z: startZ + 65 },
-                { x: startX + CHUNK_SIZE - 65, z: startZ + 65 },
-                { x: startX + 65, z: startZ + CHUNK_SIZE - 65 },
-                { x: startX + CHUNK_SIZE - 65, z: startZ + CHUNK_SIZE - 65 }
+                { x: startX + 75, z: startZ + 75 },
+                { x: startX + CHUNK_SIZE - 75, z: startZ + 75 },
+                { x: startX + 75, z: startZ + CHUNK_SIZE - 75 },
+                { x: startX + CHUNK_SIZE - 75, z: startZ + CHUNK_SIZE - 75 }
             ];
 
             buildingPositions.forEach(pos => {
-                const totalHeight = Math.random() * 100 + 50;
-                const baseWidth = Math.random() * 15 + 32;
-                const baseDepth = Math.random() * 15 + 32;
-
-                const bGroup = new THREE.Group();
-
-                // 1. Podium Base
-                const baseH = totalHeight * 0.3;
-                const baseGeo = new THREE.BoxGeometry(baseWidth, baseH, baseDepth);
-                const texBase = bldgTex.clone();
-                texBase.repeat.set(2, Math.floor(baseH / 10));
-                const baseMesh = new THREE.Mesh(baseGeo, new THREE.MeshStandardMaterial({ map: texBase, metalness: 0.6, roughness: 0.3 }));
-                baseMesh.position.y = baseH / 2;
-                bGroup.add(baseMesh);
-
-                // 2. Tower Body
-                const towerH = totalHeight * 0.7;
-                const towerGeo = new THREE.BoxGeometry(baseWidth * 0.8, towerH, baseDepth * 0.8);
-                const texTower = bldgTex.clone();
-                texTower.repeat.set(2, Math.floor(towerH / 10));
-                const towerMesh = new THREE.Mesh(towerGeo, new THREE.MeshStandardMaterial({ map: texTower, metalness: 0.7, roughness: 0.2 }));
-                towerMesh.position.y = baseH + towerH / 2;
-                bGroup.add(towerMesh);
-
-                // 3. Spire / Rooftop Antenna (for realistic skyline)
-                if (totalHeight > 110) {
-                    const spire = new THREE.Mesh(
-                        new THREE.CylinderGeometry(0.3, 1.2, 25, 8),
-                        new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9 })
-                    );
-                    spire.position.y = totalHeight + 12.5;
-                    bGroup.add(spire);
-                }
-
-                bGroup.position.set(pos.x, 0, pos.z);
-                chunkGroup.add(bGroup);
-
-                localObstacles.push({ box: new THREE.Box3().setFromObject(bGroup) });
+                const totalHeight = Math.random() * 120 + 60;
+                const building = generateRealBuilding(pos.x, pos.z, totalHeight);
+                chunkGroup.add(building);
+                localObstacles.push({ box: new THREE.Box3().setFromObject(building) });
             });
 
             scene.add(chunkGroup);
@@ -571,21 +589,8 @@
             });
         }
 
-        // Real Natural Horizon Mountain Peaks
-        function addMountains() {
-            const mMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.95 });
-            for (let i = 0; i < 36; i++) {
-                const angle = (i / 36) * Math.PI * 2;
-                const dist = 2200;
-                const m = new THREE.Mesh(new THREE.ConeGeometry(300 + Math.random() * 120, 450, 7), mMat);
-                m.position.set(Math.cos(angle) * dist, 180, Math.sin(angle) * dist);
-                scene.add(m);
-            }
-        }
-        addMountains();
-
-        // --- 5. THROTTLE CONTROLS & FLIGHT PHYSICS ---
-        let currentSpeed = 400; // Speed in km/h
+        // --- 6. FLIGHT PHYSICS & THROTTLE SYSTEM ---
+        let currentSpeed = 450;
         let isPaused = false;
         let isGameOver = false;
         let yawAngle = 0;
@@ -610,19 +615,19 @@
         function updateFlightPhysics() {
             if (isGameOver || isPaused) return;
 
-            // Live Keyboard Speed Controls (Shift / Ctrl or I / K)
+            // Throttle Keyboard Controls (Shift / Ctrl or I / K)
             if (keys['ShiftLeft'] || keys['ShiftRight'] || keys['KeyI']) {
-                currentSpeed = Math.min(1200, currentSpeed + 5);
+                currentSpeed = Math.min(1400, currentSpeed + 6);
                 throttleSlider.value = currentSpeed;
                 throttleReadout.innerText = `${Math.round(currentSpeed)} KM/H`;
             }
             if (keys['ControlLeft'] || keys['ControlRight'] || keys['KeyK']) {
-                currentSpeed = Math.max(0, currentSpeed - 5);
+                currentSpeed = Math.max(0, currentSpeed - 6);
                 throttleSlider.value = currentSpeed;
                 throttleReadout.innerText = `${Math.round(currentSpeed)} KM/H`;
             }
 
-            // Keyboard Yaw, Pitch & Roll Steering
+            // Keyboard Steering
             if (keys['ArrowLeft'] || keys['KeyA']) {
                 targetRoll = -45;
                 yawAngle += 0.022;
@@ -641,7 +646,6 @@
                 targetPitch = 0;
             }
 
-            // Interpolation
             rollAngle += (targetRoll - rollAngle) * 0.1;
             pitchAngle += (targetPitch - pitchAngle) * 0.1;
 
@@ -653,7 +657,6 @@
             );
             jetGroup.quaternion.setFromEuler(euler);
 
-            // Velocity Vector Acceleration
             const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(jetGroup.quaternion);
             const moveDistance = (currentSpeed / 3.6) * 0.025;
             jetGroup.position.addScaledVector(forward, moveDistance);
@@ -661,23 +664,23 @@
             totalDistance += moveDistance;
 
             if (jetGroup.position.y < 3) jetGroup.position.y = 3;
-            if (jetGroup.position.y > 400) jetGroup.position.y = 400;
+            if (jetGroup.position.y > 450) jetGroup.position.y = 450;
 
             updateInfiniteChunks();
 
             // Camera Tracking
             if (cameraMode === 'TPP') {
-                const offset = new THREE.Vector3(0, 6, 22).applyQuaternion(jetGroup.quaternion);
+                const offset = new THREE.Vector3(0, 7, 24).applyQuaternion(jetGroup.quaternion);
                 camera.position.copy(jetGroup.position).add(offset);
                 camera.lookAt(jetGroup.position.clone().add(new THREE.Vector3(0, 1.5, -25).applyQuaternion(jetGroup.quaternion)));
             } else {
-                const offset = new THREE.Vector3(0, 1.0, -1.2).applyQuaternion(jetGroup.quaternion);
+                const offset = new THREE.Vector3(0, 1.2, -1.2).applyQuaternion(jetGroup.quaternion);
                 camera.position.copy(jetGroup.position).add(offset);
-                camera.lookAt(jetGroup.position.clone().add(new THREE.Vector3(0, 1.0, -60).applyQuaternion(jetGroup.quaternion)));
+                camera.lookAt(jetGroup.position.clone().add(new THREE.Vector3(0, 1.2, -60).applyQuaternion(jetGroup.quaternion)));
             }
         }
 
-        // --- 6. MPU6050 SERIAL HARDWARE CONNECTION ---
+        // --- 7. MPU6050 SERIAL HARDWARE CONNECTION ---
         let espConnected = false;
         document.getElementById('connect-btn').addEventListener('click', async () => {
             if ('serial' in navigator) {
@@ -716,7 +719,7 @@
             }
         });
 
-        // --- 7. COLLISION SYSTEM ---
+        // --- 8. COLLISION SYSTEM ---
         function checkCollisions() {
             if (isGameOver) return;
             const jetBox = new THREE.Box3().setFromObject(jetGroup);
@@ -732,7 +735,7 @@
             });
         }
 
-        // --- 8. UI HANDLERS ---
+        // --- 9. UI HANDLERS ---
         document.getElementById('view-btn').addEventListener('click', () => {
             cameraMode = (cameraMode === 'TPP') ? 'FPP' : 'TPP';
             document.getElementById('view-btn').innerText = `View: ${cameraMode}`;
@@ -744,7 +747,7 @@
         });
 
         document.getElementById('recenter-btn').addEventListener('click', () => {
-            jetGroup.position.set(0, 50, 0);
+            jetGroup.position.set(0, 75, 0);
             yawAngle = 0; pitchAngle = 0; rollAngle = 0;
         });
 
@@ -757,14 +760,14 @@
 
         function resetSimulation() {
             document.getElementById('gameover-overlay').style.display = 'none';
-            jetGroup.position.set(0, 50, 0);
+            jetGroup.position.set(0, 75, 0);
             yawAngle = 0; pitchAngle = 0; rollAngle = 0;
             totalDistance = 0;
             isGameOver = false;
             isPaused = false;
         }
 
-        // --- 9. ANIMATION LOOP ---
+        // --- 10. ANIMATION LOOP ---
         function animate() {
             requestAnimationFrame(animate);
 
