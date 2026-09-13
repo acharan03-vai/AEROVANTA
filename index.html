@@ -23,7 +23,7 @@
             z-index: 1;
         }
 
-        /* TOP HUD HEADER (Target Video Style) */
+        /* TOP HUD HEADER */
         #top-bar {
             position: absolute;
             top: 0;
@@ -66,7 +66,7 @@
         .telem-lbl { font-size: 9px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
         .telem-val { font-size: 16px; font-weight: 800; color: #ffffff; }
 
-        /* BOTTOM CONTROL BAR */
+        /* BOTTOM CONTROL PANEL */
         #bottom-bar {
             position: absolute;
             bottom: 12px;
@@ -97,7 +97,7 @@
         .btn-connect { background: #a3e635; color: #0f172a; border: none; font-weight: 800; }
         .btn-connect:hover { background: #bef264; }
 
-        /* GAME OVER SCREEN */
+        /* CRASH OVERLAY */
         #gameover-overlay {
             position: absolute;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -174,7 +174,7 @@
         <p>
             • <b>A / D or Arrow Left / Right</b>: Roll & Steer Plane Left/Right<br>
             • <b>W / S or Arrow Up / Down</b>: Pitch Nose Down / Pitch Nose Up<br>
-            • <b>MPU6050 Hardware</b>: Connect serial to turn hardware tilt into flight controls!
+            • <b>MPU6050 Hardware</b>: Connect serial to fly using hardware gyro tilting!
         </p>
         <button class="ctrl-btn" style="width:100%" id="close-modal-btn">Close</button>
     </div>
@@ -190,10 +190,11 @@
         // --- 1. THREE.JS SCENE SETUP ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x9bd0ed); // Realistic blue sky
-        scene.fog = new THREE.FogExp2(0x9bd0ed, 0.0015);
+        const skyColor = 0xa0c8f0;
+        scene.background = new THREE.Color(skyColor);
+        scene.fog = new THREE.FogExp2(skyColor, 0.0012);
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 3000);
         let cameraMode = 'TPP';
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -202,45 +203,44 @@
         renderer.shadowMap.enabled = true;
         container.appendChild(renderer.domElement);
 
-        // Lighting
+        // Lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
         scene.add(ambientLight);
 
-        const sunLight = new THREE.DirectionalLight(0xffffff, 0.9);
-        sunLight.position.set(200, 300, 100);
+        const sunLight = new THREE.DirectionalLight(0xfffaed, 1.1);
+        sunLight.position.set(300, 500, 200);
         sunLight.castShadow = true;
         scene.add(sunLight);
 
         // --- 2. MODERN JET FIGHTER AIRCRAFT BUILD ---
         const jetGroup = new THREE.Group();
 
-        // Materials
-        const jetBodyMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.3, metalness: 0.6 });
+        const jetBodyMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.3, metalness: 0.5 });
         const jetDarkMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.2 });
         const glassMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, opacity: 0.7, transparent: true });
         const redTipMat = new THREE.MeshStandardMaterial({ color: 0xef4444 });
 
-        // Fuselage (Sleek Jet Nose & Body)
-        const bodyGeo = new THREE.ConeGeometry(0.8, 6, 8);
+        // Fuselage Body & Nose
+        const bodyGeo = new THREE.ConeGeometry(0.8, 6.2, 8);
         const bodyMesh = new THREE.Mesh(bodyGeo, jetBodyMat);
         bodyMesh.rotation.x = -Math.PI / 2;
         jetGroup.add(bodyMesh);
 
-        // Cockpit Glass Canopy
+        // Cockpit Glass
         const glassGeo = new THREE.SphereGeometry(0.5, 16, 16);
         glassGeo.scale(0.8, 0.6, 2.2);
         const cockpit = new THREE.Mesh(glassGeo, glassMat);
         cockpit.position.set(0, 0.45, -0.6);
         jetGroup.add(cockpit);
 
-        // Swept Delta Wings
+        // Swept Wings
         const wingShape = new THREE.Shape();
         wingShape.moveTo(0, 0);
-        wingShape.lineTo(4.2, -2.5);
-        wingShape.lineTo(4.2, -3.2);
+        wingShape.lineTo(4.5, -2.5);
+        wingShape.lineTo(4.5, -3.2);
         wingShape.lineTo(0, -1.8);
-        wingShape.lineTo(-4.2, -3.2);
-        wingShape.lineTo(-4.2, -2.5);
+        wingShape.lineTo(-4.5, -3.2);
+        wingShape.lineTo(-4.5, -2.5);
         wingShape.closePath();
 
         const extrudeSettings = { depth: 0.1, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.05, bevelThickness: 0.05 };
@@ -250,16 +250,16 @@
         mainWings.position.set(0, 0, 1.2);
         jetGroup.add(mainWings);
 
-        // Red Wingtips
+        // Wingtips
         const wingTipL = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.1, 0.8), redTipMat);
-        wingTipL.position.set(-4.25, 0, 0.2);
+        wingTipL.position.set(-4.55, 0, 0.2);
         jetGroup.add(wingTipL);
 
         const wingTipR = wingTipL.clone();
-        wingTipR.position.x = 4.25;
+        wingTipR.position.x = 4.55;
         jetGroup.add(wingTipR);
 
-        // Twin Tail Fins (Modern Stealth Jet Style)
+        // Twin Fins
         const finGeo = new THREE.BoxGeometry(0.08, 1.2, 1.2);
         const finL = new THREE.Mesh(finGeo, jetDarkMat);
         finL.position.set(-0.7, 0.7, 2.2);
@@ -271,27 +271,24 @@
         finR.rotation.z = Math.PI / 12;
         jetGroup.add(finR);
 
-        // Jet Engine Exhaust Nozzle
-        const engineGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.8, 16);
-        const engineMesh = new THREE.Mesh(engineGeo, jetDarkMat);
+        // Engine Nozzle
+        const engineMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.8, 16), jetDarkMat);
         engineMesh.rotation.x = Math.PI / 2;
         engineMesh.position.set(0, 0, 2.8);
         jetGroup.add(engineMesh);
 
-        jetGroup.position.set(0, 25, 0);
+        jetGroup.position.set(0, 30, 0);
         scene.add(jetGroup);
 
-        // --- 3. OPEN WORLD CITY ENVIRONMENT ---
-        const cityGroup = new THREE.Group();
-        const obstacleBoxes = [];
-
-        // Building Texture Generator
+        // --- 3. REUSABLE ASSET FACTORIES (TREES, BUSHES, BUILDINGS, LAMPS) ---
+        
+        // Window Texture
         function createBuildingTexture() {
             const canvas = document.createElement('canvas');
             canvas.width = 128; canvas.height = 128;
             const ctx = canvas.getContext('2d');
             ctx.fillStyle = '#64748b'; ctx.fillRect(0, 0, 128, 128);
-            ctx.fillStyle = '#334155';
+            ctx.fillStyle = '#1e293b';
             for (let y = 8; y < 128; y += 16) {
                 for (let x = 8; x < 128; x += 16) {
                     ctx.fillRect(x, y, 8, 10);
@@ -303,62 +300,210 @@
         windowTexture.wrapS = THREE.RepeatWrapping;
         windowTexture.wrapT = THREE.RepeatWrapping;
 
-        function buildCityGrid() {
-            // Ground
-            const groundGeo = new THREE.PlaneGeometry(1200, 1200);
-            const groundMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 });
-            const ground = new THREE.Mesh(groundGeo, groundMat);
+        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.9 });
+        const leafMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32, roughness: 0.7 });
+        const bushMat = new THREE.MeshStandardMaterial({ color: 0x388e3c, roughness: 0.8 });
+        const poleMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8 });
+
+        // Tree Creator
+        function createTree() {
+            const tree = new THREE.Group();
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 3, 8), trunkMat);
+            trunk.position.y = 1.5;
+            tree.add(trunk);
+
+            // Layered Foliage Cone
+            for (let i = 0; i < 3; i++) {
+                const leaves = new THREE.Mesh(new THREE.ConeGeometry(2 - i * 0.4, 3, 8), leafMat);
+                leaves.position.y = 3 + i * 1.5;
+                tree.add(leaves);
+            }
+            return tree;
+        }
+
+        // Bush Creator
+        function createBush() {
+            const bush = new THREE.Mesh(new THREE.DodecahedronGeometry(0.9, 1), bushMat);
+            bush.position.y = 0.6;
+            bush.scale.set(1.2, 0.8, 1.2);
+            return bush;
+        }
+
+        // Streetlamp Creator
+        function createLamp() {
+            const lamp = new THREE.Group();
+            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 6, 8), poleMat);
+            pole.position.y = 3;
+            lamp.add(pole);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.2, 0.3), poleMat);
+            head.position.y = 6;
+            lamp.add(head);
+            return lamp;
+        }
+
+        // --- 4. INFINITE PROCEDURAL CHUNK SYSTEM ---
+        const activeChunks = new Map();
+        const obstacleBoxes = [];
+        const CHUNK_SIZE = 200;
+        const RENDER_DISTANCE = 3; // Number of chunks around plane to render continuously
+
+        function getChunkKey(cx, cz) { return `${cx},${cz}`; }
+
+        function generateChunk(cx, cz) {
+            const chunkGroup = new THREE.Group();
+            const startX = cx * CHUNK_SIZE;
+            const startZ = cz * CHUNK_SIZE;
+
+            // Ground Grass Base
+            const ground = new THREE.Mesh(
+                new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE),
+                new THREE.MeshStandardMaterial({ color: 0x487e3a, roughness: 0.9 })
+            );
             ground.rotation.x = -Math.PI / 2;
-            ground.position.y = 0;
-            cityGroup.add(ground);
+            ground.position.set(startX + CHUNK_SIZE / 2, 0, startZ + CHUNK_SIZE / 2);
+            chunkGroup.add(ground);
 
-            // Wide Asphalt Avenue Strips
-            for (let i = -500; i <= 500; i += 100) {
-                const roadH = new THREE.Mesh(new THREE.PlaneGeometry(1200, 24), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
-                roadH.rotation.x = -Math.PI / 2;
-                roadH.position.set(0, 0.1, i);
-                cityGroup.add(roadH);
+            // Road Grid in Chunk (Main Avenues)
+            const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+            const roadV = new THREE.Mesh(new THREE.PlaneGeometry(24, CHUNK_SIZE), roadMat);
+            roadV.rotation.x = -Math.PI / 2;
+            roadV.position.set(startX + CHUNK_SIZE / 2, 0.1, startZ + CHUNK_SIZE / 2);
+            chunkGroup.add(roadV);
 
-                const roadV = new THREE.Mesh(new THREE.PlaneGeometry(24, 1200), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
-                roadV.rotation.x = -Math.PI / 2;
-                roadV.position.set(i, 0.1, 0);
-                cityGroup.add(roadV);
+            const roadH = new THREE.Mesh(new THREE.PlaneGeometry(CHUNK_SIZE, 24), roadMat);
+            roadH.rotation.x = -Math.PI / 2;
+            roadH.position.set(startX + CHUNK_SIZE / 2, 0.1, startZ + CHUNK_SIZE / 2);
+            chunkGroup.add(roadH);
+
+            // Sidewalk Strips
+            const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.7 });
+            const swL = new THREE.Mesh(new THREE.PlaneGeometry(4, CHUNK_SIZE), sidewalkMat);
+            swL.rotation.x = -Math.PI / 2;
+            swL.position.set(startX + CHUNK_SIZE / 2 - 14, 0.15, startZ + CHUNK_SIZE / 2);
+            chunkGroup.add(swL);
+
+            const swR = swL.clone();
+            swR.position.x = startX + CHUNK_SIZE / 2 + 14;
+            chunkGroup.add(swR);
+
+            // Populate Environment Elements (Trees, Bushes, Lamps, Buildings)
+            const localObstacles = [];
+
+            // Add Sidewalk Trees, Bushes & Streetlamps
+            for (let z = startZ + 15; z < startZ + CHUNK_SIZE; z += 35) {
+                // Trees along side
+                const t1 = createTree();
+                t1.position.set(startX + CHUNK_SIZE / 2 - 18, 0, z);
+                chunkGroup.add(t1);
+
+                const t2 = createTree();
+                t2.position.set(startX + CHUNK_SIZE / 2 + 18, 0, z);
+                chunkGroup.add(t2);
+
+                // Bushes
+                const b1 = createBush();
+                b1.position.set(startX + CHUNK_SIZE / 2 - 14, 0, z + 12);
+                chunkGroup.add(b1);
+
+                const b2 = createBush();
+                b2.position.set(startX + CHUNK_SIZE / 2 + 14, 0, z + 12);
+                chunkGroup.add(b2);
+
+                // Streetlamps
+                const l1 = createLamp();
+                l1.position.set(startX + CHUNK_SIZE / 2 - 13, 0, z + 20);
+                chunkGroup.add(l1);
             }
 
-            // Grid of City Buildings
-            for (let x = -450; x <= 450; x += 60) {
-                for (let z = -450; z <= 450; z += 60) {
-                    if (Math.abs(x % 100) < 20 || Math.abs(z % 100) < 20) continue;
+            // Buildings in 4 Quadrants
+            const quadOffsets = [
+                { x: startX + 45, z: startZ + 45 },
+                { x: startX + CHUNK_SIZE - 45, z: startZ + 45 },
+                { x: startX + 45, z: startZ + CHUNK_SIZE - 45 },
+                { x: startX + CHUNK_SIZE - 45, z: startZ + CHUNK_SIZE - 45 }
+            ];
 
-                    const h = Math.random() * 50 + 25;
-                    const w = Math.random() * 12 + 22;
-                    const d = Math.random() * 12 + 22;
+            quadOffsets.forEach(pos => {
+                const h = Math.random() * 60 + 30;
+                const w = Math.random() * 12 + 25;
+                const d = Math.random() * 12 + 25;
 
-                    const tex = windowTexture.clone();
-                    tex.repeat.set(2, Math.floor(h / 8));
+                const tex = windowTexture.clone();
+                tex.repeat.set(2, Math.floor(h / 8));
 
-                    const building = new THREE.Mesh(
-                        new THREE.BoxGeometry(w, h, d),
-                        new THREE.MeshStandardMaterial({ map: tex, color: 0x94a3b8, roughness: 0.5 })
-                    );
-                    building.position.set(x, h / 2, z);
-                    building.castShadow = true;
-                    building.receiveShadow = true;
-                    cityGroup.add(building);
+                const bMat = new THREE.MeshStandardMaterial({ map: tex, color: 0xcbd5e1, roughness: 0.4 });
+                const bMesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), bMat);
+                bMesh.position.set(pos.x, h / 2, pos.z);
+                bMesh.castShadow = true;
+                bMesh.receiveShadow = true;
+                chunkGroup.add(bMesh);
 
-                    obstacleBoxes.push({
-                        box: new THREE.Box3().setFromObject(building)
-                    });
+                // Helicopter pad on top of tall buildings
+                if (h > 65) {
+                    const pad = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 0.4, 16), new THREE.MeshStandardMaterial({ color: 0xef4444 }));
+                    pad.position.set(pos.x, h + 0.2, pos.z);
+                    chunkGroup.add(pad);
+                }
+
+                localObstacles.push({ box: new THREE.Box3().setFromObject(bMesh) });
+            });
+
+            scene.add(chunkGroup);
+            return { group: chunkGroup, obstacles: localObstacles };
+        }
+
+        function updateInfiniteChunks() {
+            const pX = jetGroup.position.x;
+            const pZ = jetGroup.position.z;
+
+            const currentChunkX = Math.floor(pX / CHUNK_SIZE);
+            const currentChunkZ = Math.floor(pZ / CHUNK_SIZE);
+
+            const loadedKeys = new Set();
+
+            for (let x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
+                for (let z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
+                    const cx = currentChunkX + x;
+                    const cz = currentChunkZ + z;
+                    const key = getChunkKey(cx, cz);
+                    loadedKeys.add(key);
+
+                    if (!activeChunks.has(key)) {
+                        const chunkData = generateChunk(cx, cz);
+                        activeChunks.set(key, chunkData);
+                    }
                 }
             }
-        }
-        buildCityGrid();
-        scene.add(cityGroup);
 
-        // --- 4. REALISTIC FLIGHT DYNAMICS ---
+            // Unload distant chunks to maintain high performance
+            activeChunks.forEach((data, key) => {
+                if (!loadedKeys.has(key)) {
+                    scene.remove(data.group);
+                    activeChunks.delete(key);
+                }
+            });
+        }
+
+        // Add Far Mountains Horizon
+        function addMountainHorizon() {
+            const mGroup = new THREE.Group();
+            const mMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 1.0 });
+
+            for (let i = 0; i < 24; i++) {
+                const angle = (i / 24) * Math.PI * 2;
+                const dist = 1200;
+                const m = new THREE.Mesh(new THREE.ConeGeometry(180 + Math.random() * 80, 250, 6), mMat);
+                m.position.set(Math.cos(angle) * dist, 100, Math.sin(angle) * dist);
+                mGroup.add(m);
+            }
+            scene.add(mGroup);
+        }
+        addMountainHorizon();
+
+        // --- 5. REALISTIC FLIGHT DYNAMICS ---
         let isPaused = false;
         let isGameOver = false;
-        let speed = 288; // Default speed KM/H
+        let speed = 288;
         let yawAngle = 0;
         let pitchAngle = 0;
         let rollAngle = 0;
@@ -377,10 +522,10 @@
             // Controls
             if (keys['ArrowLeft'] || keys['KeyA']) {
                 targetRoll = -40;
-                yawAngle += 0.018; // Turn plane left
+                yawAngle += 0.018; // Steer left
             } else if (keys['ArrowRight'] || keys['KeyD']) {
                 targetRoll = 40;
-                yawAngle -= 0.018; // Turn plane right
+                yawAngle -= 0.018; // Steer right
             } else if (!espConnected) {
                 targetRoll = 0;
             }
@@ -393,7 +538,7 @@
                 targetPitch = 0;
             }
 
-            // Smooth interpolation
+            // Smooth Interpolation
             rollAngle += (targetRoll - rollAngle) * 0.1;
             pitchAngle += (targetPitch - pitchAngle) * 0.1;
 
@@ -413,9 +558,12 @@
 
             totalDistance += moveDistance;
 
-            // Keep Plane within reasonable flight boundaries
+            // Flight altitude bounds
             if (jetGroup.position.y < 2) jetGroup.position.y = 2;
-            if (jetGroup.position.y > 150) jetGroup.position.y = 150;
+            if (jetGroup.position.y > 220) jetGroup.position.y = 220;
+
+            // Procedurally spawn/despawn environment continuous path
+            updateInfiniteChunks();
 
             // Camera Tracking Behind Jet
             if (cameraMode === 'TPP') {
@@ -429,7 +577,7 @@
             }
         }
 
-        // --- 5. ESP32 HARDWARE CONTROLLER INTEGRATION ---
+        // --- 6. ESP32 HARDWARE CONTROLLER INTEGRATION ---
         let espConnected = false;
         document.getElementById('connect-btn').addEventListener('click', async () => {
             if ('serial' in navigator) {
@@ -460,7 +608,7 @@
                                 if (k === 'P') targetPitch = parseFloat(v) || 0;
                                 if (k === 'R') {
                                     targetRoll = parseFloat(v) || 0;
-                                    yawAngle -= (targetRoll / 40) * 0.02; // Gyro roll causes actual turning
+                                    yawAngle -= (targetRoll / 40) * 0.02;
                                 }
                             });
                         }
@@ -469,22 +617,23 @@
             }
         });
 
-        // --- 6. COLLISION DETECTOR ---
+        // --- 7. COLLISION DETECTOR ---
         function checkCollisions() {
             if (isGameOver) return;
             const jetBox = new THREE.Box3().setFromObject(jetGroup);
 
-            for (let obs of obstacleBoxes) {
-                if (jetBox.intersectsBox(obs.box)) {
-                    isGameOver = true;
-                    document.getElementById('gameover-overlay').style.display = 'flex';
-                    document.getElementById('final-dist-txt').innerText = `DISTANCE TRAVELED: ${Math.round(totalDistance)} M`;
-                    break;
-                }
-            }
+            activeChunks.forEach(chunk => {
+                chunk.obstacles.forEach(obs => {
+                    if (jetBox.intersectsBox(obs.box)) {
+                        isGameOver = true;
+                        document.getElementById('gameover-overlay').style.display = 'flex';
+                        document.getElementById('final-dist-txt').innerText = `DISTANCE TRAVELED: ${Math.round(totalDistance)} M`;
+                    }
+                });
+            });
         }
 
-        // --- 7. BUTTON INTERACTION ---
+        // --- 8. UI CONTROLS ---
         document.getElementById('view-btn').addEventListener('click', () => {
             cameraMode = (cameraMode === 'TPP') ? 'FPP' : 'TPP';
             document.getElementById('view-btn').innerText = `View: ${cameraMode}`;
@@ -496,7 +645,7 @@
         });
 
         document.getElementById('recenter-btn').addEventListener('click', () => {
-            jetGroup.position.set(0, 25, 0);
+            jetGroup.position.set(0, 30, 0);
             yawAngle = 0; pitchAngle = 0; rollAngle = 0;
         });
 
@@ -509,14 +658,14 @@
 
         function resetSimulation() {
             document.getElementById('gameover-overlay').style.display = 'none';
-            jetGroup.position.set(0, 25, 0);
+            jetGroup.position.set(0, 30, 0);
             yawAngle = 0; pitchAngle = 0; rollAngle = 0;
             totalDistance = 0;
             isGameOver = false;
             isPaused = false;
         }
 
-        // --- 8. GAME LOOP ---
+        // --- 9. MAIN GAME LOOP ---
         function animate() {
             requestAnimationFrame(animate);
 
