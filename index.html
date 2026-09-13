@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AEROVANTA — Flight Simulator Engine</title>
+    <title>Photorealistic Web Flight Simulator Engine</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             overflow: hidden;
-            background-color: #000000;
+            background-color: #030712;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             color: #ffffff;
             user-select: none;
@@ -22,63 +22,33 @@
             z-index: 1;
         }
 
-        /* INTRO / GAME OVER OVERLAYS */
-        #cinematic-title-overlay {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 25;
-            text-align: center;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 1.2s ease-in-out;
-        }
-        .main-title-text {
-            font-size: 56px;
-            font-weight: 900;
-            letter-spacing: 12px;
-            color: #ffffff;
-            text-shadow: 0 0 30px rgba(56, 189, 248, 0.8), 0 0 60px rgba(56, 189, 248, 0.4);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .sub-title-text {
-            font-size: 14px;
-            letter-spacing: 8px;
-            color: #38bdf8;
-            margin-top: 8px;
-            font-weight: 700;
-        }
-
         /* TOP TELEMETRY HUD */
         #top-bar {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 60px;
-            background: linear-gradient(180deg, rgba(8, 14, 26, 0.92) 0%, rgba(8, 14, 26, 0) 100%);
-            border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+            top: 0; left: 0; width: 100%; height: 56px;
+            background: linear-gradient(180deg, rgba(8, 14, 26, 0.9) 0%, rgba(8, 14, 26, 0.2) 100%);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.3);
             z-index: 10;
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 28px;
-            backdrop-filter: blur(8px);
-            opacity: 0;
-            transition: opacity 2s ease;
+            padding: 0 24px;
+            backdrop-filter: blur(10px);
         }
 
         .brand-title {
             display: flex; align-items: center; gap: 8px;
-            font-weight: 900; font-size: 16px; letter-spacing: 3px;
-            color: #ffffff;
+            font-weight: 800; font-size: 14px; letter-spacing: 2px;
+            color: #38bdf8;
+            text-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
         }
-        .brand-title span.blue { color: #38bdf8; }
-        .brand-sub { font-size: 10px; color: #94a3b8; font-weight: 600; letter-spacing: 1px; }
+        .brand-sub { font-size: 10px; color: #94a3b8; font-weight: 600; }
 
         .telemetry-group {
-            display: flex; gap: 32px;
+            display: flex; gap: 28px;
             font-family: 'Courier New', Courier, monospace;
         }
         .telem-box { text-align: right; }
         .telem-lbl { font-size: 9px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
-        .telem-val { font-size: 16px; font-weight: 800; color: #38bdf8; text-shadow: 0 0 8px rgba(56, 189, 248, 0.4); }
-        .telem-val-gold { color: #f59e0b; text-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
+        .telem-val { font-size: 17px; font-weight: 800; color: #38bdf8; text-shadow: 0 0 8px rgba(56, 189, 248, 0.4); }
 
         /* THROTTLE CONTROL PANEL */
         #throttle-panel {
@@ -93,8 +63,6 @@
             display: flex; flex-direction: column; align-items: center; gap: 12px;
             backdrop-filter: blur(8px);
             box-shadow: 0 0 20px rgba(0,0,0,0.6);
-            opacity: 0;
-            transition: opacity 2s ease;
         }
 
         .throttle-lbl { font-size: 10px; font-weight: 800; letter-spacing: 1px; color: #94a3b8; }
@@ -126,8 +94,6 @@
             border-radius: 8px;
             border: 1px solid rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(8px);
-            opacity: 0;
-            transition: opacity 2s ease;
         }
 
         .ctrl-btn {
@@ -140,35 +106,19 @@
             transition: all 0.2s ease;
         }
 
+        
         .ctrl-btn:hover { background: #334155; border-color: #38bdf8; color: #38bdf8; }
         .btn-connect { background: #a3e635; color: #0f172a; border: none; font-weight: 800; }
         .btn-connect:hover { background: #bef264; color: #0f172a; }
 
-        /* START PROMPT OVERLAY */
-        #start-overlay {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 50; background: #030712;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            cursor: pointer;
-        }
-        .start-title { font-size: 48px; font-weight: 900; letter-spacing: 10px; color: #ffffff; margin-bottom: 12px; }
-        .start-prompt { font-size: 14px; letter-spacing: 3px; color: #38bdf8; font-family: monospace; animation: pulse 1.8s infinite; }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-
         /* OVERLAYS */
         #gameover-overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 30; background: rgba(15, 23, 42, 0.94); display: none;
+            z-index: 30; background: rgba(15, 23, 42, 0.92); display: none;
             flex-direction: column; justify-content: center; align-items: center;
         }
-        .go-title { font-size: 42px; font-weight: 900; color: #ef4444; letter-spacing: 4px; margin-bottom: 8px; }
-        .go-sub { font-size: 16px; color: #cbd5e1; margin-bottom: 6px; font-family: monospace; }
-        .go-best { font-size: 14px; color: #f59e0b; margin-bottom: 24px; font-family: monospace; font-weight: 700; }
-        
+        .go-title { font-size: 42px; font-weight: 900; color: #ef4444; letter-spacing: 3px; margin-bottom: 8px; }
+        .go-sub { font-size: 16px; color: #cbd5e1; margin-bottom: 24px; font-family: monospace; }
         .btn-restart-large {
             background: #ef4444; color: #ffffff; border: none; padding: 12px 32px;
             font-size: 14px; font-weight: 800; border-radius: 6px; cursor: pointer;
@@ -183,44 +133,21 @@
         #controls-modal h3 { color: #38bdf8; margin-bottom: 12px; font-size: 16px; }
         #controls-modal p { font-size: 12px; color: #94a3b8; line-height: 1.8; margin-bottom: 16px; }
     </style>
-    <!-- Three.js Engine & TextGeometry Helpers -->
+    <!-- Three.js Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/FontUtils.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
 </head>
 <body>
 
-    <!-- CLICK TO START INTRO OVERLAY -->
-    <div id="start-overlay">
-        <div class="start-title">AEROVANTA</div>
-        <div class="start-prompt">CLICK ANYWHERE TO EXPERIENCE BREAK THE SKY</div>
-    </div>
-
     <div id="canvas-container"></div>
-
-    <!-- CINEMATIC TITLE OVERLAY -->
-    <div id="cinematic-title-overlay">
-        <div class="main-title-text">AEROVANTA</div>
-        <div class="sub-title-text">BEYOND THE HORIZON</div>
-    </div>
 
     <!-- HUD TOP BAR -->
     <div id="top-bar">
         <div class="brand-title">
-            <span>AERO<span class="blue">VANTA</span></span>
-            <span class="brand-sub">/ FLIGHT SIMULATOR</span>
+            <span>FLIGHT LAB</span>
+            <span class="brand-sub">/ REAL-WORLD ENGINE</span>
         </div>
 
         <div class="telemetry-group">
-            <div class="telem-box">
-                <div class="telem-lbl">DISTANCE</div>
-                <div id="dist-val" class="telem-val">0 M</div>
-            </div>
-            <div class="telem-box">
-                <div class="telem-lbl">BEST SCORE</div>
-                <div id="best-val" class="telem-val telem-val-gold">0 M</div>
-            </div>
             <div class="telem-box">
                 <div class="telem-lbl">AIRSPEED</div>
                 <div id="speed-val" class="telem-val">450 km/h</div>
@@ -271,114 +198,15 @@
     <div id="gameover-overlay">
         <div class="go-title">AIRCRAFT CRASHED</div>
         <div class="go-sub" id="final-dist-txt">DISTANCE FLOWN: 0 M</div>
-        <div class="go-best" id="best-dist-txt">PERSONAL BEST: 0 M</div>
         <button class="btn-restart-large" id="restart-overlay-btn">RESTART SIMULATION</button>
     </div>
 
     <script>
-        // --- HIGH SCORE SYSTEM ---
-        let highScore = parseInt(localStorage.getItem('aerovanta_highscore') || '0', 10);
-        document.getElementById('best-val').innerText = `${highScore} M`;
-
-        // --- SYNTHESIZED PROCEDURAL AUDIO ENGINE ---
-        class AudioEngine {
-            constructor() {
-                this.ctx = null;
-                this.engineGain = null;
-                this.engineOsc = null;
-                this.windGain = null;
-            }
-
-            init() {
-                if (this.ctx) return;
-                const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                this.ctx = new AudioCtx();
-
-                // Engine Noise (Low Sawtooth + Noise)
-                this.engineOsc = this.ctx.createOscillator();
-                this.engineOsc.type = 'sawtooth';
-                this.engineOsc.frequency.setValueAtTime(55, this.ctx.currentTime);
-
-                this.engineGain = this.ctx.createGain();
-                this.engineGain.gain.setValueAtTime(0.01, this.ctx.currentTime);
-
-                this.engineOsc.connect(this.engineGain);
-                this.engineGain.connect(this.ctx.destination);
-                this.engineOsc.start();
-
-                // Wind Noise (Filtered White Noise)
-                const bufferSize = this.ctx.sampleRate * 2;
-                const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-                const output = noiseBuffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
-
-                const whiteNoise = this.ctx.createBufferSource();
-                whiteNoise.buffer = noiseBuffer;
-                whiteNoise.loop = true;
-
-                const filter = this.ctx.createBiquadFilter();
-                filter.type = 'bandpass';
-                filter.frequency.setValueAtTime(400, this.ctx.currentTime);
-
-                this.windGain = this.ctx.createGain();
-                this.windGain.gain.setValueAtTime(0.01, this.ctx.currentTime);
-
-                whiteNoise.connect(filter);
-                filter.connect(this.windGain);
-                this.windGain.connect(this.ctx.destination);
-                whiteNoise.start();
-            }
-
-            playFlybySound() {
-                if (!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(120, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 1.2);
-                
-                gain.gain.setValueAtTime(0, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.8, this.ctx.currentTime + 0.4);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 1.2);
-
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 1.2);
-            }
-
-            playShatterSound() {
-                if (!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.8);
-
-                gain.gain.setValueAtTime(0.6, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.8);
-
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.8);
-            }
-
-            updateEngine(speed, altitude) {
-                if (!this.ctx) return;
-                const freq = 40 + (speed / 1400) * 120;
-                this.engineOsc.frequency.setTargetAtTime(freq, this.ctx.currentTime, 0.1);
-                this.engineGain.gain.setTargetAtTime(0.15, this.ctx.currentTime, 0.1);
-                this.windGain.gain.setTargetAtTime(Math.min(0.3, (speed / 1400) * 0.4), this.ctx.currentTime, 0.1);
-            }
-        }
-
-        const audio = new AudioEngine();
-
-        // --- THREE.JS ENGINE SETUP ---
+        // --- 1. RENDERER & LIGHTING ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
 
+        // Atmospheric Distance Fog
         const FOG_COLOR = 0xb4d3ed;
         scene.fog = new THREE.FogExp2(FOG_COLOR, 0.00018);
 
@@ -391,10 +219,10 @@
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.35;
+        renderer.toneMappingExposure = 1.35; // Increased exposure to fix pitch-black buildings
         container.appendChild(renderer.domElement);
 
-        // Environment Lighting
+        // Natural Environment Lighting
         const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x334155, 1.8);
         scene.add(hemiLight);
 
@@ -412,67 +240,108 @@
         sunLight.shadow.camera.bottom = -shadowCamDist;
         scene.add(sunLight);
 
+        // Ambient Fill Light to illuminate shadowed building faces
         const fillLight = new THREE.DirectionalLight(0x93c5fd, 0.9);
         fillLight.position.set(-1000, 500, -1000);
         scene.add(fillLight);
 
-        // Dynamic Textures
+        // --- 2. PROCEDURAL HIGH-RESOLUTION TEXTURE GENERATORS ---
+        
+        // Dynamic Building Facade Texture
         function createBuildingFacadeTexture() {
             const canvas = document.createElement('canvas');
             canvas.width = 1024; canvas.height = 1024;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#2a3447'; ctx.fillRect(0, 0, 1024, 1024);
-            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 4;
+
+            // Base Wall (Concrete/Composite Panel)
+            ctx.fillStyle = '#2a3447';
+            ctx.fillRect(0, 0, 1024, 1024);
+
+            // Metallic Panel Grid Lines
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 4;
             for (let x = 0; x < 1024; x += 64) {
                 ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1024); ctx.stroke();
             }
+
+            // Glass Window Grids with Dynamic Night Illumination
             for (let y = 16; y < 1024; y += 32) {
                 for (let x = 8; x < 1024; x += 64) {
                     const rand = Math.random();
-                    if (rand > 0.45) ctx.fillStyle = '#0f172a';
-                    else if (rand > 0.12) ctx.fillStyle = '#0284c7';
-                    else ctx.fillStyle = '#fef08a';
+                    if (rand > 0.45) {
+                        // Reflective Dark Glass
+                        ctx.fillStyle = '#0f172a';
+                    } else if (rand > 0.12) {
+                        // Azure Blue Glass Reflection
+                        ctx.fillStyle = '#0284c7';
+                    } else {
+                        // Warm Illuminated Office Window
+                        ctx.fillStyle = '#fef08a';
+                    }
                     ctx.fillRect(x, y, 48, 20);
-                    ctx.strokeStyle = '#475569'; ctx.lineWidth = 2;
+
+                    // Window Frame Borders
+                    ctx.strokeStyle = '#475569';
+                    ctx.lineWidth = 2;
                     ctx.strokeRect(x, y, 48, 20);
                 }
             }
             const texture = new THREE.CanvasTexture(canvas);
-            texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping;
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
             return texture;
         }
 
+        // Road Surface Texture
         function createRoadTexture() {
             const canvas = document.createElement('canvas');
             canvas.width = 512; canvas.height = 512;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, 512, 512);
-            ctx.fillStyle = '#64748b'; ctx.fillRect(0, 0, 32, 512); ctx.fillRect(480, 0, 32, 512);
-            ctx.fillStyle = '#f59e0b'; ctx.fillRect(250, 0, 4, 512); ctx.fillRect(258, 0, 4, 512);
+
+            // Asphalt Surface
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, 0, 512, 512);
+
+            // Concrete Sidewalk Edges
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(0, 0, 32, 512);
+            ctx.fillRect(480, 0, 32, 512);
+
+            // Yellow Double Center Lines
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(250, 0, 4, 512);
+            ctx.fillRect(258, 0, 4, 512);
+
+            // White Dashed Lane Dividers
             ctx.fillStyle = '#ffffff';
             for (let y = 0; y < 512; y += 64) {
-                ctx.fillRect(138, y, 6, 32); ctx.fillRect(368, y, 6, 32);
+                ctx.fillRect(138, y, 6, 32);
+                ctx.fillRect(368, y, 6, 32);
             }
             const texture = new THREE.CanvasTexture(canvas);
-            texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping;
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
             return texture;
         }
 
         const bldgTexture = createBuildingFacadeTexture();
         const roadTexture = createRoadTexture();
 
-        // Skybox & Clouds
+        // --- 3. ATMOSPHERIC SKY & CLOUDS ---
         function createAtmosphericSky() {
             const canvas = document.createElement('canvas');
             canvas.width = 2048; canvas.height = 1024;
             const ctx = canvas.getContext('2d');
+
             const grad = ctx.createLinearGradient(0, 0, 0, 1024);
-            grad.addColorStop(0.0, '#0d1b2a');
-            grad.addColorStop(0.4, '#1b4965');
-            grad.addColorStop(0.7, '#62b6cb');
-            grad.addColorStop(0.88, '#bee9e8');
-            grad.addColorStop(1.0, '#cae9ff');
-            ctx.fillStyle = grad; ctx.fillRect(0, 0, 2048, 1024);
+            grad.addColorStop(0.0, '#0d1b2a'); // Zenith
+            grad.addColorStop(0.4, '#1b4965'); 
+            grad.addColorStop(0.7, '#62b6cb'); // Mid Sky
+            grad.addColorStop(0.88, '#bee9e8'); // Atmospheric Haze
+            grad.addColorStop(1.0, '#cae9ff');  // Ground Glow
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 2048, 1024);
+
             return new THREE.CanvasTexture(canvas);
         }
 
@@ -481,43 +350,116 @@
         const skyDome = new THREE.Mesh(skyDomeGeo, skyDomeMat);
         scene.add(skyDome);
 
-        // Aircraft Jet Engine
+        // Volumetric Clouds Layer
+        function createCloudPuffTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createRadialGradient(128, 128, 10, 128, 128, 128);
+            grad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+            grad.addColorStop(0.5, 'rgba(240, 248, 255, 0.4)');
+            grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 256, 256);
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        const cloudTex = createCloudPuffTexture();
+        const cloudsGroup = new THREE.Group();
+        for (let i = 0; i < 180; i++) {
+            const cloudMat = new THREE.SpriteMaterial({ map: cloudTex, transparent: true, opacity: 0.6, depthWrite: false });
+            const cloud = new THREE.Sprite(cloudMat);
+            cloud.position.set(
+                (Math.random() - 0.5) * 12000,
+                300 + Math.random() * 300,
+                (Math.random() - 0.5) * 12000
+            );
+            const size = 500 + Math.random() * 600;
+            cloud.scale.set(size, size * 0.4, 1);
+            cloudsGroup.add(cloud);
+        }
+        scene.add(cloudsGroup);
+
+        // --- 4. HIGH-DETAIL CANARD DELTA JET FIGHTER ---
         function createDeltaFighter() {
             const jet = new THREE.Group();
+
             const bodyMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.85, roughness: 0.2 });
             const wingMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.8, roughness: 0.25 });
             const darkMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9, roughness: 0.1 });
             const glassMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.95, roughness: 0.05, transparent: true, opacity: 0.75 });
-            const flameMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+            const engineFlameMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
 
-            const nose = new THREE.Mesh(new THREE.ConeGeometry(0.65, 5.0, 16), bodyMat);
-            nose.rotation.x = -Math.PI / 2; nose.position.z = -3.5; jet.add(nose);
+            // Nose Cone
+            const noseGeo = new THREE.ConeGeometry(0.65, 5.0, 16);
+            const nose = new THREE.Mesh(noseGeo, bodyMat);
+            nose.rotation.x = -Math.PI / 2;
+            nose.position.z = -3.5;
+            jet.add(nose);
 
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.85, 7.5, 16), bodyMat);
-            body.rotation.x = -Math.PI / 2; jet.add(body);
+            // Fuselage
+            const bodyGeo = new THREE.CylinderGeometry(0.7, 0.85, 7.5, 16);
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.rotation.x = -Math.PI / 2;
+            jet.add(body);
 
-            const cockpitGeo = new THREE.SphereGeometry(0.5, 16, 16); cockpitGeo.scale(0.85, 0.75, 2.8);
-            const cockpit = new THREE.Mesh(cockpitGeo, glassMat); cockpit.position.set(0, 0.5, -1.2); jet.add(cockpit);
+            // Canopy
+            const cockpitGeo = new THREE.SphereGeometry(0.5, 16, 16);
+            cockpitGeo.scale(0.85, 0.75, 2.8);
+            const cockpit = new THREE.Mesh(cockpitGeo, glassMat);
+            cockpit.position.set(0, 0.5, -1.2);
+            jet.add(cockpit);
 
+            // Main Delta Wings
             const deltaWingShape = new THREE.Shape();
-            deltaWingShape.moveTo(0, 1.2); deltaWingShape.lineTo(5.5, -3.2); deltaWingShape.lineTo(5.5, -4.2);
-            deltaWingShape.lineTo(0, -3.0); deltaWingShape.lineTo(-5.5, -4.2); deltaWingShape.lineTo(-5.5, -3.2); deltaWingShape.closePath();
+            deltaWingShape.moveTo(0, 1.2);
+            deltaWingShape.lineTo(5.5, -3.2);
+            deltaWingShape.lineTo(5.5, -4.2);
+            deltaWingShape.lineTo(0, -3.0);
+            deltaWingShape.lineTo(-5.5, -4.2);
+            deltaWingShape.lineTo(-5.5, -3.2);
+            deltaWingShape.closePath();
 
-            const wings = new THREE.Mesh(new THREE.ExtrudeGeometry(deltaWingShape, { depth: 0.12, bevelEnabled: true }), wingMat);
-            wings.rotation.x = Math.PI / 2; wings.position.set(0, -0.1, 1.0); jet.add(wings);
+            const wingGeo = new THREE.ExtrudeGeometry(deltaWingShape, { depth: 0.12, bevelEnabled: true, bevelSegments: 2, bevelSize: 0.04, bevelThickness: 0.04 });
+            const wings = new THREE.Mesh(wingGeo, wingMat);
+            wings.rotation.x = Math.PI / 2;
+            wings.position.set(0, -0.1, 1.0);
+            jet.add(wings);
 
+            // Vertical Stabilizer
             const finShape = new THREE.Shape();
-            finShape.moveTo(0, 0); finShape.lineTo(0, 2.8); finShape.lineTo(-1.2, 2.4); finShape.lineTo(-2.2, 0); finShape.closePath();
-            const fin = new THREE.Mesh(new THREE.ExtrudeGeometry(finShape, { depth: 0.1, bevelEnabled: false }), bodyMat);
-            fin.position.set(0, 0.6, 3.2); fin.rotation.y = Math.PI / 2; jet.add(fin);
+            finShape.moveTo(0, 0);
+            finShape.lineTo(0, 2.8);
+            finShape.lineTo(-1.2, 2.4);
+            finShape.lineTo(-2.2, 0);
+            finShape.closePath();
 
-            const engL = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 1.2, 16), darkMat);
-            engL.rotation.x = Math.PI / 2; engL.position.set(-0.48, -0.1, 3.8); jet.add(engL);
-            const engR = engL.clone(); engR.position.x = 0.48; jet.add(engR);
+            const finGeo = new THREE.ExtrudeGeometry(finShape, { depth: 0.1, bevelEnabled: false });
+            const fin = new THREE.Mesh(finGeo, bodyMat);
+            fin.position.set(0, 0.6, 3.2);
+            fin.rotation.y = Math.PI / 2;
+            jet.add(fin);
 
-            const flameL = new THREE.Mesh(new THREE.ConeGeometry(0.35, 2.2, 12), flameMat);
-            flameL.rotation.x = -Math.PI / 2; flameL.position.set(-0.48, -0.1, 5.0); jet.add(flameL);
-            const flameR = flameL.clone(); flameR.position.x = 0.48; jet.add(flameR);
+            // Engines & Thrust Flared Nozzles
+            const engGeo = new THREE.CylinderGeometry(0.42, 0.42, 1.2, 16);
+            const engL = new THREE.Mesh(engGeo, darkMat);
+            engL.rotation.x = Math.PI / 2;
+            engL.position.set(-0.48, -0.1, 3.8);
+            jet.add(engL);
+
+            const engR = engL.clone();
+            engR.position.x = 0.48;
+            jet.add(engR);
+
+            const flameGeo = new THREE.ConeGeometry(0.35, 2.2, 12);
+            const flameL = new THREE.Mesh(flameGeo, engineFlameMat);
+            flameL.rotation.x = -Math.PI / 2;
+            flameL.position.set(-0.48, -0.1, 5.0);
+            jet.add(flameL);
+
+            const flameR = flameL.clone();
+            flameR.position.x = 0.48;
+            jet.add(flameR);
 
             jet.scale.set(1.4, 1.4, 1.4);
             return jet;
@@ -527,25 +469,71 @@
         jetGroup.position.set(0, 85, 0);
         scene.add(jetGroup);
 
-        // Infinite City Chunk World
+        // --- 5. CHUNK-BASED INFINITE REAL CITY GENERATION ---
         const activeChunks = new Map();
         const CHUNK_SIZE = 400;
         const RENDER_DISTANCE = 3;
+
+        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x3d2314, roughness: 0.9 });
+        const leafMat = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.6 });
+
+        function createTree() {
+            const tree = new THREE.Group();
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 5, 8), trunkMat);
+            trunk.position.y = 2.5;
+            tree.add(trunk);
+
+            const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(3.5, 1), leafMat);
+            leaves.position.y = 6.5;
+            tree.add(leaves);
+            return tree;
+        }
 
         function generateBuilding(x, z, totalHeight) {
             const bGroup = new THREE.Group();
             const baseWidth = 45 + Math.random() * 25;
             const baseDepth = 45 + Math.random() * 25;
 
+            // Tier 1: Podium
             const pHeight = totalHeight * 0.3;
-            const pTex = bldgTexture.clone(); pTex.repeat.set(Math.floor(baseWidth / 12), Math.floor(pHeight / 12));
-            const podium = new THREE.Mesh(new THREE.BoxGeometry(baseWidth, pHeight, baseDepth), new THREE.MeshStandardMaterial({ map: pTex, metalness: 0.6, roughness: 0.3 }));
-            podium.position.y = pHeight / 2; podium.castShadow = true; podium.receiveShadow = true; bGroup.add(podium);
+            const pGeo = new THREE.BoxGeometry(baseWidth, pHeight, baseDepth);
+            const pTex = bldgTexture.clone();
+            pTex.repeat.set(Math.floor(baseWidth / 12), Math.floor(pHeight / 12));
+            const pMat = new THREE.MeshStandardMaterial({ map: pTex, metalness: 0.6, roughness: 0.3 });
+            const podium = new THREE.Mesh(pGeo, pMat);
+            podium.position.y = pHeight / 2;
+            podium.castShadow = true;
+            podium.receiveShadow = true;
+            bGroup.add(podium);
 
+            // Tier 2: Tower Setback
             const tHeight = totalHeight * 0.7;
-            const tTex = bldgTexture.clone(); tTex.repeat.set(Math.floor((baseWidth * 0.8) / 12), Math.floor(tHeight / 12));
-            const tower = new THREE.Mesh(new THREE.BoxGeometry(baseWidth * 0.8, tHeight, baseDepth * 0.8), new THREE.MeshStandardMaterial({ map: tTex, metalness: 0.8, roughness: 0.2 }));
-            tower.position.y = pHeight + tHeight / 2; tower.castShadow = true; tower.receiveShadow = true; bGroup.add(tower);
+            const tGeo = new THREE.BoxGeometry(baseWidth * 0.8, tHeight, baseDepth * 0.8);
+            const tTex = bldgTexture.clone();
+            tTex.repeat.set(Math.floor((baseWidth * 0.8) / 12), Math.floor(tHeight / 12));
+            const tMat = new THREE.MeshStandardMaterial({ map: tTex, metalness: 0.8, roughness: 0.2 });
+            const tower = new THREE.Mesh(tGeo, tMat);
+            tower.position.y = pHeight + tHeight / 2;
+            tower.castShadow = true;
+            tower.receiveShadow = true;
+            bGroup.add(tower);
+
+            // Tier 3: Rooftop HVAC / Helipad Detail
+            const hvac = new THREE.Mesh(
+                new THREE.BoxGeometry(baseWidth * 0.3, 4, baseDepth * 0.3),
+                new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.9, roughness: 0.3 })
+            );
+            hvac.position.y = totalHeight + 2;
+            bGroup.add(hvac);
+
+            if (totalHeight > 120) {
+                const spire = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.2, 1.0, 30, 8),
+                    new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.95 })
+                );
+                spire.position.y = totalHeight + 15;
+                bGroup.add(spire);
+            }
 
             bGroup.position.set(x, 0, z);
             return bGroup;
@@ -553,16 +541,55 @@
 
         function generateChunk(cx, cz) {
             const chunkGroup = new THREE.Group();
-            const startX = cx * CHUNK_SIZE; const startZ = cz * CHUNK_SIZE;
+            const startX = cx * CHUNK_SIZE;
+            const startZ = cz * CHUNK_SIZE;
 
-            const ground = new THREE.Mesh(new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE), new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.9 }));
-            ground.rotation.x = -Math.PI / 2; ground.position.set(startX + CHUNK_SIZE / 2, 0, startZ + CHUNK_SIZE / 2); ground.receiveShadow = true; chunkGroup.add(ground);
+            // Ground Grass Base
+            const groundGeo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE);
+            const groundMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.9 });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.set(startX + CHUNK_SIZE / 2, 0, startZ + CHUNK_SIZE / 2);
+            ground.receiveShadow = true;
+            chunkGroup.add(ground);
 
-            const tileRoadTex = roadTexture.clone(); tileRoadTex.repeat.set(1, 8);
-            const roadV = new THREE.Mesh(new THREE.PlaneGeometry(50, CHUNK_SIZE), new THREE.MeshStandardMaterial({ map: tileRoadTex, roughness: 0.7 }));
-            roadV.rotation.x = -Math.PI / 2; roadV.position.set(startX + CHUNK_SIZE / 2, 0.1, startZ + CHUNK_SIZE / 2); chunkGroup.add(roadV);
+            // Asphalt Roads Grid
+            const tileRoadTex = roadTexture.clone();
+            tileRoadTex.repeat.set(1, 8);
+
+            const roadV = new THREE.Mesh(
+                new THREE.PlaneGeometry(50, CHUNK_SIZE),
+                new THREE.MeshStandardMaterial({ map: tileRoadTex, roughness: 0.7 })
+            );
+            roadV.rotation.x = -Math.PI / 2;
+            roadV.position.set(startX + CHUNK_SIZE / 2, 0.1, startZ + CHUNK_SIZE / 2);
+            roadV.receiveShadow = true;
+            chunkGroup.add(roadV);
+
+            const roadH = new THREE.Mesh(
+                new THREE.PlaneGeometry(CHUNK_SIZE, 50),
+                new THREE.MeshStandardMaterial({ map: tileRoadTex, roughness: 0.7 })
+            );
+            roadH.rotation.x = -Math.PI / 2;
+            roadH.rotation.z = Math.PI / 2;
+            roadH.position.set(startX + CHUNK_SIZE / 2, 0.1, startZ + CHUNK_SIZE / 2);
+            roadH.receiveShadow = true;
+            chunkGroup.add(roadH);
 
             const obstacles = [];
+
+            // Sidewalk Trees
+            for (let z = startZ + 30; z < startZ + CHUNK_SIZE; z += 60) {
+                const tree1 = createTree();
+                tree1.position.set(startX + CHUNK_SIZE / 2 - 32, 0, z);
+                chunkGroup.add(tree1);
+
+                const tree2 = createTree();
+                tree2.position.set(startX + CHUNK_SIZE / 2 + 32, 0, z);
+                chunkGroup.add(tree2);
+            }
+
+            // Real City Buildings
             const buildingCoords = [
                 { x: startX + 95, z: startZ + 95 },
                 { x: startX + CHUNK_SIZE - 95, z: startZ + 95 },
@@ -582,155 +609,35 @@
         }
 
         function updateChunks() {
-            const pX = jetGroup.position.x; const pZ = jetGroup.position.z;
-            const currChunkX = Math.floor(pX / CHUNK_SIZE); const currChunkZ = Math.floor(pZ / CHUNK_SIZE);
+            const pX = jetGroup.position.x;
+            const pZ = jetGroup.position.z;
+
+            const currChunkX = Math.floor(pX / CHUNK_SIZE);
+            const currChunkZ = Math.floor(pZ / CHUNK_SIZE);
             const activeKeys = new Set();
 
             for (let x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
                 for (let z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
-                    const cx = currChunkX + x; const cz = currChunkZ + z;
-                    const key = `${cx},${cz}`; activeKeys.add(key);
-                    if (!activeChunks.has(key)) activeChunks.set(key, generateChunk(cx, cz));
+                    const cx = currChunkX + x;
+                    const cz = currChunkZ + z;
+                    const key = `${cx},${cz}`;
+                    activeKeys.add(key);
+
+                    if (!activeChunks.has(key)) {
+                        activeChunks.set(key, generateChunk(cx, cz));
+                    }
                 }
             }
 
             activeChunks.forEach((data, key) => {
                 if (!activeKeys.has(key)) {
-                    scene.remove(data.group); activeChunks.delete(key);
+                    scene.remove(data.group);
+                    activeChunks.delete(key);
                 }
             });
         }
 
-        // --- 3D FLOATING "AEROVANTA" TITLE STRUCTURES ---
-        const titleGroup = new THREE.Group();
-        titleGroup.position.set(0, 950, -4200);
-        scene.add(titleGroup);
-
-        let titleShattered = false;
-        let particleSystem = null;
-
-        const fontLoader = new THREE.FontLoader();
-        fontLoader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_bold.typeface.json', (font) => {
-            const textGeo = new THREE.TextGeometry('AEROVANTA', {
-                font: font, size: 140, height: 25, bevelEnabled: true, bevelThickness: 4, bevelSize: 2
-            });
-            textGeo.center();
-
-            const textMat = new THREE.MeshStandardMaterial({
-                color: 0xffffff, metalness: 0.9, roughness: 0.1,
-                emissive: 0x38bdf8, emissiveIntensity: 0.6, transparent: true, opacity: 0.95
-            });
-
-            const textMesh = new THREE.Mesh(textGeo, textMat);
-            titleGroup.add(textMesh);
-        });
-
-        // Particle Shockwave Explosion Effect
-        function createShatterParticles(origin) {
-            const count = 2200;
-            const geo = new THREE.BufferGeometry();
-            const positions = new Float32Array(count * 3);
-            const velocities = new Float32Array(count * 3);
-
-            for (let i = 0; i < count; i++) {
-                positions[i * 3] = origin.x + (Math.random() - 0.5) * 800;
-                positions[i * 3 + 1] = origin.y + (Math.random() - 0.5) * 200;
-                positions[i * 3 + 2] = origin.z + (Math.random() - 0.5) * 200;
-
-                velocities[i * 3] = (Math.random() - 0.5) * 35;
-                velocities[i * 3 + 1] = (Math.random() - 0.5) * 35;
-                velocities[i * 3 + 2] = (Math.random() - 0.5) * 35;
-            }
-
-            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            const mat = new THREE.PointsMaterial({ color: 0x38bdf8, size: 6, transparent: true, opacity: 1 });
-            particleSystem = new THREE.Points(geo, mat);
-            particleSystem.userData = { velocities: velocities };
-            scene.add(particleSystem);
-        }
-
-        // --- CINEMATIC INTRO CONTROLLER ---
-        let cinematicActive = true;
-        let cinematicTime = 0;
-
-        function updateCinematicIntro(delta) {
-            cinematicTime += delta;
-
-            // SHOT 1 & 2: Street Level Dawn Silence
-            if (cinematicTime < 6.0) {
-                jetGroup.position.set(0, 25, -500 + cinematicTime * 120);
-                camera.position.set(22, 14, -180);
-                camera.lookAt(0, 35, 100);
-            }
-            // SHOT 3: Low Altitude High-Speed Flyby
-            else if (cinematicTime >= 6.0 && cinematicTime < 11.0) {
-                if (cinematicTime < 6.1) audio.playFlybySound();
-                jetGroup.position.set(0, 45, -300 + (cinematicTime - 6) * 320);
-                camera.position.set(-18, 10, jetGroup.position.z + 25);
-                camera.lookAt(jetGroup.position);
-            }
-            // SHOT 4: Powerful Vertical Ascent
-            else if (cinematicTime >= 11.0 && cinematicTime < 17.0) {
-                const progress = (cinematicTime - 11.0) / 6.0;
-                jetGroup.position.y = 45 + progress * 900;
-                jetGroup.position.z -= 180 * delta;
-                jetGroup.rotation.x = -Math.PI / 3;
-
-                camera.position.set(jetGroup.position.x, jetGroup.position.y - 35, jetGroup.position.z + 60);
-                camera.lookAt(jetGroup.position);
-            }
-            // SHOT 5, 6 & 7: World Reveal & Flying Through AEROVANTA
-            else if (cinematicTime >= 17.0 && cinematicTime < 27.0) {
-                jetGroup.rotation.x = 0;
-                jetGroup.position.y = 950;
-                jetGroup.position.z -= 280 * delta;
-
-                camera.position.set(jetGroup.position.x, jetGroup.position.y + 8, jetGroup.position.z + 30);
-                camera.lookAt(jetGroup.position.x, jetGroup.position.y, jetGroup.position.z - 50);
-
-                // Shatter Moment
-                if (jetGroup.position.z <= titleGroup.position.z + 100 && !titleShattered) {
-                    titleShattered = true;
-                    titleGroup.visible = false;
-                    createShatterParticles(titleGroup.position);
-                    audio.playShatterSound();
-                }
-            }
-            // SHOT 8 & 9: Particles Form HUD & Title Reveal
-            else if (cinematicTime >= 27.0 && cinematicTime < 32.0) {
-                if (cinematicTime >= 28.0 && cinematicTime < 28.2) {
-                    document.getElementById('cinematic-title-overlay').style.opacity = '1';
-                }
-                if (cinematicTime >= 31.0) {
-                    document.getElementById('cinematic-title-overlay').style.opacity = '0';
-                }
-
-                jetGroup.position.z -= 200 * delta;
-                camera.position.copy(jetGroup.position).add(new THREE.Vector3(0, 7, 24));
-                camera.lookAt(jetGroup.position);
-            }
-            // TRANSITION TO FULL GAMEPLAY
-            else if (cinematicTime >= 32.0) {
-                cinematicActive = false;
-                document.getElementById('top-bar').style.opacity = '1';
-                document.getElementById('throttle-panel').style.opacity = '1';
-                document.getElementById('bottom-bar').style.opacity = '1';
-            }
-
-            // Animate Particles
-            if (particleSystem) {
-                const pos = particleSystem.geometry.attributes.position.array;
-                const vel = particleSystem.userData.velocities;
-                for (let i = 0; i < pos.length; i += 3) {
-                    pos[i] += vel[i] * 0.1;
-                    pos[i + 1] += vel[i + 1] * 0.1;
-                    pos[i + 2] += vel[i + 2] * 0.1;
-                }
-                particleSystem.geometry.attributes.position.needsUpdate = true;
-            }
-        }
-
-        // --- FLIGHT PHYSICS & CONTROL LOOP ---
+        // --- 6. FLIGHT PHYSICS & THROTTLE CONTROLS ---
         let currentSpeed = 450;
         let isPaused = false;
         let isGameOver = false;
@@ -754,8 +661,9 @@
         window.addEventListener('keyup', e => keys[e.code] = false);
 
         function updateFlightPhysics() {
-            if (isGameOver || isPaused || cinematicActive) return;
+            if (isGameOver || isPaused) return;
 
+            // Throttle Adjustments
             if (keys['ShiftLeft'] || keys['ShiftRight'] || keys['KeyI']) {
                 currentSpeed = Math.min(1400, currentSpeed + 6);
                 throttleSlider.value = currentSpeed;
@@ -767,15 +675,24 @@
                 throttleReadout.innerText = `${Math.round(currentSpeed)} KM/H`;
             }
 
+            // Keyboard Steering Mechanics
             if (keys['ArrowLeft'] || keys['KeyA']) {
-                targetRoll = -45; yawAngle += 0.022;
+                targetRoll = -45;
+                yawAngle += 0.022;
             } else if (keys['ArrowRight'] || keys['KeyD']) {
-                targetRoll = 45; yawAngle -= 0.022;
-            } else if (!espConnected) targetRoll = 0;
+                targetRoll = 45;
+                yawAngle -= 0.022;
+            } else if (!espConnected) {
+                targetRoll = 0;
+            }
 
-            if (keys['ArrowUp'] || keys['KeyW']) targetPitch = -25;
-            else if (keys['ArrowDown'] || keys['KeyS']) targetPitch = 25;
-            else if (!espConnected) targetPitch = 0;
+            if (keys['ArrowUp'] || keys['KeyW']) {
+                targetPitch = -25;
+            } else if (keys['ArrowDown'] || keys['KeyS']) {
+                targetPitch = 25;
+            } else if (!espConnected) {
+                targetPitch = 0;
+            }
 
             rollAngle += (targetRoll - rollAngle) * 0.1;
             pitchAngle += (targetPitch - pitchAngle) * 0.1;
@@ -794,21 +711,17 @@
 
             totalDistance += moveDist;
 
-            // Update High Score Live
-            if (Math.round(totalDistance) > highScore) {
-                highScore = Math.round(totalDistance);
-                localStorage.setItem('aerovanta_highscore', highScore.toString());
-                document.getElementById('best-val').innerText = `${highScore} M`;
-            }
-
+            // Altitude Boundaries
             if (jetGroup.position.y < 3) jetGroup.position.y = 3;
-            if (jetGroup.position.y > 1200) jetGroup.position.y = 1200;
+            if (jetGroup.position.y > 800) jetGroup.position.y = 800;
 
+            // SkyDome Follows Camera Position
             skyDome.position.copy(jetGroup.position);
             sunLight.position.set(jetGroup.position.x + 1200, 1800, jetGroup.position.z + 800);
 
             updateChunks();
 
+            // Camera Tracking Modes
             if (cameraMode === 'TPP') {
                 const offset = new THREE.Vector3(0, 7, 24).applyQuaternion(jetGroup.quaternion);
                 camera.position.copy(jetGroup.position).add(offset);
@@ -818,11 +731,9 @@
                 camera.position.copy(jetGroup.position).add(offset);
                 camera.lookAt(jetGroup.position.clone().add(new THREE.Vector3(0, 1.2, -60).applyQuaternion(jetGroup.quaternion)));
             }
-
-            audio.updateEngine(currentSpeed, jetGroup.position.y);
         }
 
-        // --- HARDWARE CONNECTOR ---
+        // --- 7. MPU6050 SERIAL HARDWARE CONNECTOR ---
         let espConnected = false;
         document.getElementById('connect-btn').addEventListener('click', async () => {
             if ('serial' in navigator) {
@@ -861,9 +772,9 @@
             }
         });
 
-        // --- COLLISION SYSTEM ---
+        // --- 8. COLLISION DETECTION ---
         function checkCollisions() {
-            if (isGameOver || cinematicActive) return;
+            if (isGameOver) return;
             const jetBox = new THREE.Box3().setFromObject(jetGroup);
 
             activeChunks.forEach(chunk => {
@@ -872,18 +783,12 @@
                         isGameOver = true;
                         document.getElementById('gameover-overlay').style.display = 'flex';
                         document.getElementById('final-dist-txt').innerText = `DISTANCE FLOWN: ${Math.round(totalDistance)} M`;
-                        document.getElementById('best-dist-txt').innerText = `PERSONAL BEST: ${highScore} M`;
                     }
                 });
             });
         }
 
-        // --- UI HANDLERS ---
-        document.getElementById('start-overlay').addEventListener('click', () => {
-            audio.init();
-            document.getElementById('start-overlay').style.display = 'none';
-        });
-
+        // --- 9. UI CONTROL LISTENERS ---
         document.getElementById('view-btn').addEventListener('click', () => {
             cameraMode = (cameraMode === 'TPP') ? 'FPP' : 'TPP';
             document.getElementById('view-btn').innerText = `View: ${cameraMode}`;
@@ -915,23 +820,13 @@
             isPaused = false;
         }
 
-        // --- RENDER & ANIMATION LOOP ---
-        let lastTime = performance.now();
+        // --- 10. ANIMATION LOOP ---
         function animate() {
             requestAnimationFrame(animate);
 
-            const now = performance.now();
-            const delta = (now - lastTime) / 1000;
-            lastTime = now;
+            updateFlightPhysics();
+            checkCollisions();
 
-            if (cinematicActive) {
-                updateCinematicIntro(delta);
-            } else {
-                updateFlightPhysics();
-                checkCollisions();
-            }
-
-            document.getElementById('dist-val').innerText = `${Math.round(totalDistance)} M`;
             document.getElementById('speed-val').innerText = `${Math.round(currentSpeed)} km/h`;
             document.getElementById('alt-val').innerText = `${Math.round(jetGroup.position.y)} m`;
             let degHeading = Math.round((THREE.MathUtils.radToDeg(yawAngle) % 360 + 360) % 360);
