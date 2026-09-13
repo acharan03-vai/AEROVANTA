@@ -22,6 +22,44 @@
             z-index: 1;
         }
 
+        /* BLACK OVERLAY FOR INITIAL INTRO DELAY */
+        #intro-blackout {
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #000000;
+            z-index: 45;
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 1s ease;
+        }
+
+        /* CINEMATIC TITLE OVERLAY */
+        #cinematic-title-overlay {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 25;
+            text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+        }
+        .main-title-text {
+            font-size: 56px;
+            font-weight: 900;
+            letter-spacing: 12px;
+            color: #ffffff;
+            text-shadow: 0 0 30px rgba(56, 189, 248, 0.8), 0 0 60px rgba(56, 189, 248, 0.4);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sub-title-text {
+            font-size: 14px;
+            letter-spacing: 8px;
+            color: #38bdf8;
+            margin-top: 8px;
+            font-weight: 700;
+        }
+
         /* TOP TELEMETRY HUD */
         #top-bar {
             position: absolute;
@@ -32,6 +70,8 @@
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 24px;
             backdrop-filter: blur(10px);
+            opacity: 0;
+            transition: opacity 1.5s ease;
         }
 
         .brand-title {
@@ -63,6 +103,8 @@
             display: flex; flex-direction: column; align-items: center; gap: 12px;
             backdrop-filter: blur(8px);
             box-shadow: 0 0 20px rgba(0,0,0,0.6);
+            opacity: 0;
+            transition: opacity 1.5s ease;
         }
 
         .throttle-lbl { font-size: 10px; font-weight: 800; letter-spacing: 1px; color: #94a3b8; }
@@ -94,6 +136,8 @@
             border-radius: 8px;
             border: 1px solid rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 1.5s ease;
         }
 
         .ctrl-btn {
@@ -106,7 +150,6 @@
             transition: all 0.2s ease;
         }
 
-        
         .ctrl-btn:hover { background: #334155; border-color: #38bdf8; color: #38bdf8; }
         .btn-connect { background: #a3e635; color: #0f172a; border: none; font-weight: 800; }
         .btn-connect:hover { background: #bef264; color: #0f172a; }
@@ -133,12 +176,24 @@
         #controls-modal h3 { color: #38bdf8; margin-bottom: 12px; font-size: 16px; }
         #controls-modal p { font-size: 12px; color: #94a3b8; line-height: 1.8; margin-bottom: 16px; }
     </style>
-    <!-- Three.js Engine -->
+    <!-- Three.js Engine & Text Extrusion Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/FontUtils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
 </head>
 <body>
 
+    <!-- BLACKOUT FADE FOR INTRO IGNITION -->
+    <div id="intro-blackout"></div>
+
     <div id="canvas-container"></div>
+
+    <!-- CINEMATIC TITLE OVERLAY -->
+    <div id="cinematic-title-overlay">
+        <div class="main-title-text">AEROVANTA</div>
+        <div class="sub-title-text">BEYOND THE HORIZON</div>
+    </div>
 
     <!-- HUD TOP BAR -->
     <div id="top-bar">
@@ -619,7 +674,7 @@
             for (let x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
                 for (let z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
                     const cx = currChunkX + x;
-                    const cz = currChunkZ + z;
+                    const cz = cz = currChunkZ + z;
                     const key = `${cx},${cz}`;
                     activeKeys.add(key);
 
@@ -635,6 +690,148 @@
                     activeChunks.delete(key);
                 }
             });
+        }
+
+        // --- 5B. 3D FLOATING AEROVANTA INTRO TITLE & PARTICLES ---
+        const titleGroup = new THREE.Group();
+        titleGroup.position.set(0, 850, -1800);
+        scene.add(titleGroup);
+
+        let titleShattered = false;
+        let particleSystem = null;
+
+        const fontLoader = new THREE.FontLoader();
+        fontLoader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_bold.typeface.json', (font) => {
+            const textGeo = new THREE.TextGeometry('AEROVANTA', {
+                font: font, size: 120, height: 20, bevelEnabled: true, bevelThickness: 3, bevelSize: 2
+            });
+            textGeo.center();
+
+            const textMat = new THREE.MeshStandardMaterial({
+                color: 0xffffff, metalness: 0.95, roughness: 0.05,
+                emissive: 0x38bdf8, emissiveIntensity: 0.5, transparent: true, opacity: 0.95
+            });
+
+            const textMesh = new THREE.Mesh(textGeo, textMat);
+            titleGroup.add(textMesh);
+        });
+
+        function createShatterParticles(origin) {
+            const count = 2000;
+            const geo = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const velocities = new Float32Array(count * 3);
+
+            for (let i = 0; i < count; i++) {
+                positions[i * 3] = origin.x + (Math.random() - 0.5) * 600;
+                positions[i * 3 + 1] = origin.y + (Math.random() - 0.5) * 150;
+                positions[i * 3 + 2] = origin.z + (Math.random() - 0.5) * 150;
+
+                velocities[i * 3] = (Math.random() - 0.5) * 40;
+                velocities[i * 3 + 1] = (Math.random() - 0.5) * 40;
+                velocities[i * 3 + 2] = (Math.random() - 0.5) * 40;
+            }
+
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const mat = new THREE.PointsMaterial({ color: 0x38bdf8, size: 5, transparent: true, opacity: 1 });
+            particleSystem = new THREE.Points(geo, mat);
+            particleSystem.userData = { velocities: velocities };
+            scene.add(particleSystem);
+        }
+
+        // --- 5C. SHORT EPIC CINEMATIC INTRO SEQUENCE GATE ---
+        let introActive = true;
+        let cinematicTime = 0;
+
+        function updateCinematicIntro(delta) {
+            cinematicTime += delta;
+
+            // 0.0 - 1.5s: BLACKOUT
+            if (cinematicTime < 1.5) {
+                document.getElementById('intro-blackout').style.opacity = '1';
+                jetGroup.position.set(0, 35, -400);
+                camera.position.set(18, 12, -180);
+                camera.lookAt(0, 35, 100);
+            }
+            // 1.5 - 3.5s: CITY FLYBY WITH CAMERA SHAKE
+            else if (cinematicTime >= 1.5 && cinematicTime < 3.5) {
+                document.getElementById('intro-blackout').style.opacity = '0';
+                
+                const elapsed = (cinematicTime - 1.5);
+                jetGroup.position.set(0, 40, -350 + elapsed * 500);
+                jetGroup.rotation.set(0, 0, 0);
+
+                // Camera Shake
+                const shakeX = (Math.random() - 0.5) * 0.8;
+                const shakeY = (Math.random() - 0.5) * 0.8;
+                camera.position.set(-16 + shakeX, 12 + shakeY, jetGroup.position.z + 18);
+                camera.lookAt(jetGroup.position);
+            }
+            // 3.5 - 5.5s: VERTICAL CLIMB THROUGH CLOUDS
+            else if (cinematicTime >= 3.5 && cinematicTime < 5.5) {
+                const progress = (cinematicTime - 3.5) / 2.0;
+                jetGroup.position.y = 40 + progress * 810;
+                jetGroup.position.z -= 280 * delta;
+                jetGroup.rotation.x = -Math.PI / 3.5;
+
+                camera.position.set(jetGroup.position.x, jetGroup.position.y - 30, jetGroup.position.z + 55);
+                camera.lookAt(jetGroup.position);
+            }
+            // 5.5 - 7.5s: BREAK THROUGH CLOUDS & FLY THROUGH AEROVANTA TITLE
+            else if (cinematicTime >= 5.5 && cinematicTime < 7.5) {
+                jetGroup.rotation.set(0, 0, 0);
+                jetGroup.position.y = 850;
+                jetGroup.position.z -= 450 * delta;
+
+                camera.position.set(jetGroup.position.x, jetGroup.position.y + 6, jetGroup.position.z + 28);
+                camera.lookAt(jetGroup.position.x, jetGroup.position.y, jetGroup.position.z - 40);
+
+                // Pass-Through Shatter Moment
+                if (jetGroup.position.z <= titleGroup.position.z + 50 && !titleShattered) {
+                    titleShattered = true;
+                    titleGroup.visible = false;
+                    createShatterParticles(titleGroup.position);
+                }
+            }
+            // 7.5 - 9.5s: PARTICLES TRANSITION & HANDOFF TO GAME
+            else if (cinematicTime >= 7.5 && cinematicTime < 9.5) {
+                if (cinematicTime >= 7.6 && cinematicTime < 7.8) {
+                    document.getElementById('cinematic-title-overlay').style.opacity = '1';
+                }
+                if (cinematicTime >= 9.0) {
+                    document.getElementById('cinematic-title-overlay').style.opacity = '0';
+                }
+
+                jetGroup.position.z -= 250 * delta;
+                camera.position.copy(jetGroup.position).add(new THREE.Vector3(0, 7, 24));
+                camera.lookAt(jetGroup.position);
+            }
+            // COMPLETION & HAND-OFF TO FULL GAMEPLAY
+            else if (cinematicTime >= 9.5) {
+                introActive = false;
+                
+                // Reveal Existing HUD Elements
+                document.getElementById('top-bar').style.opacity = '1';
+                document.getElementById('throttle-panel').style.opacity = '1';
+                document.getElementById('bottom-bar').style.opacity = '1';
+
+                // Restore startup physics & placement values
+                jetGroup.position.set(0, 85, 0);
+                jetGroup.rotation.set(0, 0, 0);
+                yawAngle = 0; pitchAngle = 0; rollAngle = 0;
+            }
+
+            // Particles animation update
+            if (particleSystem) {
+                const pos = particleSystem.geometry.attributes.position.array;
+                const vel = particleSystem.userData.velocities;
+                for (let i = 0; i < pos.length; i += 3) {
+                    pos[i] += vel[i] * 0.12;
+                    pos[i + 1] += vel[i + 1] * 0.12;
+                    pos[i + 2] += vel[i + 2] * 0.12;
+                }
+                particleSystem.geometry.attributes.position.needsUpdate = true;
+            }
         }
 
         // --- 6. FLIGHT PHYSICS & THROTTLE CONTROLS ---
@@ -661,7 +858,7 @@
         window.addEventListener('keyup', e => keys[e.code] = false);
 
         function updateFlightPhysics() {
-            if (isGameOver || isPaused) return;
+            if (isGameOver || isPaused || introActive) return;
 
             // Throttle Adjustments
             if (keys['ShiftLeft'] || keys['ShiftRight'] || keys['KeyI']) {
@@ -774,7 +971,7 @@
 
         // --- 8. COLLISION DETECTION ---
         function checkCollisions() {
-            if (isGameOver) return;
+            if (isGameOver || introActive) return;
             const jetBox = new THREE.Box3().setFromObject(jetGroup);
 
             activeChunks.forEach(chunk => {
@@ -821,11 +1018,20 @@
         }
 
         // --- 10. ANIMATION LOOP ---
+        let lastTime = performance.now();
         function animate() {
             requestAnimationFrame(animate);
 
-            updateFlightPhysics();
-            checkCollisions();
+            const now = performance.now();
+            const delta = (now - lastTime) / 1000;
+            lastTime = now;
+
+            if (introActive) {
+                updateCinematicIntro(delta);
+            } else {
+                updateFlightPhysics();
+                checkCollisions();
+            }
 
             document.getElementById('speed-val').innerText = `${Math.round(currentSpeed)} km/h`;
             document.getElementById('alt-val').innerText = `${Math.round(jetGroup.position.y)} m`;
