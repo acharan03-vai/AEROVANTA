@@ -6,7 +6,11 @@
     <title>AEROVANTA - Flight Simulator</title>
 
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             overflow: hidden;
@@ -28,50 +32,51 @@
         }
 
         /* =========================================================
-           AEROVANTA INTRO SCREEN
-           ONLY ADDITION
+           AEROVANTA INTRO
            ========================================================= */
 
         #aerovanta-intro {
             position: fixed;
             inset: 0;
-            z-index: 9999;
+            z-index: 1000;
             background: #030712;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             cursor: pointer;
             touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-            transition: opacity 0.55s ease;
+            opacity: 1;
+            transition: opacity 0.45s ease;
         }
 
-        #aerovanta-intro.hide {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .intro-title {
-            font-size: clamp(30px, 5vw, 52px);
-            font-weight: 800;
-            letter-spacing: 9px;
-            color: #f8fafc;
+        #intro-content {
             text-align: center;
-            line-height: 1;
+            transform: translateY(0);
+            transition:
+                transform 0.55s cubic-bezier(.2,.8,.2,1),
+                opacity 0.45s ease;
+        }
+
+        #intro-title {
+            font-size: clamp(34px, 6vw, 78px);
+            font-weight: 900;
+            letter-spacing: 0.22em;
+            color: #ffffff;
             text-shadow:
-                0 0 8px rgba(255,255,255,0.12),
-                0 0 25px rgba(255,255,255,0.04);
+                0 0 10px rgba(255,255,255,0.18),
+                0 0 35px rgba(56,189,248,0.18);
+            margin-left: 0.22em;
         }
 
-        .intro-launch {
-            margin-top: 24px;
-            font-size: clamp(9px, 1.2vw, 12px);
+        #intro-subtitle {
+            margin-top: 18px;
+            font-size: clamp(9px, 1.2vw, 13px);
             font-weight: 700;
-            letter-spacing: 4px;
-            color: #1688bd;
-            text-align: center;
-            animation: introPulse 1.8s ease-in-out infinite;
+            letter-spacing: 0.38em;
+            color: #38bdf8;
+            margin-left: 0.38em;
+            opacity: 0.85;
+            animation: introPulse 1.5s ease-in-out infinite;
         }
 
         @keyframes introPulse {
@@ -83,7 +88,40 @@
             }
         }
 
+        #intro-flash {
+            position: absolute;
+            inset: 0;
+            background: #ffffff;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #intro-cinematic-title {
+            position: fixed;
+            inset: 0;
+            z-index: 1001;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        #intro-cinematic-title span {
+            font-size: clamp(38px, 7vw, 100px);
+            font-weight: 900;
+            letter-spacing: 0.24em;
+            margin-left: 0.24em;
+            color: #ffffff;
+            text-shadow:
+                0 0 12px rgba(255,255,255,0.5),
+                0 0 40px rgba(56,189,248,0.45),
+                0 0 90px rgba(56,189,248,0.25);
+            transform: scale(0.85);
+        }
+
         /* TOP TELEMETRY HUD */
+
         #top-bar {
             position: absolute;
             top: 0;
@@ -146,6 +184,7 @@
         }
 
         /* THROTTLE CONTROL PANEL */
+
         #throttle-panel {
             position: absolute;
             left: 20px;
@@ -195,6 +234,7 @@
         }
 
         /* BOTTOM CONTROL BAR */
+
         #bottom-bar {
             position: absolute;
             bottom: 16px;
@@ -221,7 +261,6 @@
             border-radius: 4px;
             cursor: pointer;
             transition: all 0.2s ease;
-            touch-action: manipulation;
         }
 
         .ctrl-btn:hover {
@@ -243,6 +282,7 @@
         }
 
         /* OVERLAYS */
+
         #gameover-overlay {
             position: absolute;
             top: 0;
@@ -310,70 +350,34 @@
             line-height: 1.8;
             margin-bottom: 16px;
         }
-
-        @media (max-width: 700px) {
-            #top-bar {
-                padding: 0 12px;
-            }
-
-            .brand-title {
-                font-size: 11px;
-                letter-spacing: 1px;
-            }
-
-            .brand-sub {
-                display: none;
-            }
-
-            .telemetry-group {
-                gap: 10px;
-            }
-
-            .telem-lbl {
-                font-size: 7px;
-            }
-
-            .telem-val {
-                font-size: 11px;
-            }
-
-            #bottom-bar {
-                bottom: 8px;
-                width: calc(100% - 16px);
-                padding: 6px;
-                gap: 4px;
-                justify-content: center;
-            }
-
-            .ctrl-btn {
-                font-size: 8px;
-                padding: 8px 7px;
-            }
-
-            #throttle-panel {
-                left: 8px;
-                padding: 10px 8px;
-            }
-        }
     </style>
 
-    <!-- Three.js Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 
 <body>
 
     <!-- =========================================================
-         AEROVANTA INTRO
+         AEROVANTA INTRO SCREEN
          ========================================================= -->
+
     <div id="aerovanta-intro">
-        <div class="intro-title">AEROVANTA</div>
-        <div class="intro-launch">CLICK ANYWHERE TO LAUNCH</div>
+        <div id="intro-content">
+            <div id="intro-title">AEROVANTA</div>
+            <div id="intro-subtitle">TOUCH ANYWHERE TO LAUNCH</div>
+        </div>
+
+        <div id="intro-flash"></div>
+    </div>
+
+    <div id="intro-cinematic-title">
+        <span>AEROVANTA</span>
     </div>
 
     <div id="canvas-container"></div>
 
     <!-- HUD TOP BAR -->
+
     <div id="top-bar">
         <div class="brand-title">
             <span>FLIGHT LAB</span>
@@ -381,6 +385,7 @@
         </div>
 
         <div class="telemetry-group">
+
             <div class="telem-box">
                 <div class="telem-lbl">AIRSPEED</div>
                 <div id="speed-val" class="telem-val">450 km/h</div>
@@ -395,11 +400,14 @@
                 <div class="telem-lbl">HEADING</div>
                 <div id="heading-val" class="telem-val">000°</div>
             </div>
+
         </div>
     </div>
 
     <!-- SPEED SLIDER -->
+
     <div id="throttle-panel">
+
         <div class="throttle-lbl">THROTTLE</div>
 
         <div class="slider-wrapper">
@@ -416,10 +424,13 @@
         <div class="speed-readout" id="throttle-readout">
             450 KM/H
         </div>
+
     </div>
 
-    <!-- BOTTOM CONTROLS -->
+    <!-- BOTTOM CONTROL BAR -->
+
     <div id="bottom-bar">
+
         <button class="ctrl-btn btn-connect" id="connect-btn">
             Connect Serial
         </button>
@@ -443,10 +454,13 @@
         <button class="ctrl-btn" id="controls-btn">
             Controls
         </button>
+
     </div>
 
     <!-- CONTROLS MODAL -->
+
     <div id="controls-modal">
+
         <h3>FLIGHT SIMULATOR CONTROLS</h3>
 
         <p>
@@ -459,15 +473,19 @@
         <button
             class="ctrl-btn"
             style="width:100%"
-            id="close-modal-btn"
-        >
+            id="close-modal-btn">
             Close
         </button>
+
     </div>
 
     <!-- CRASH OVERLAY -->
+
     <div id="gameover-overlay">
-        <div class="go-title">AIRCRAFT CRASHED</div>
+
+        <div class="go-title">
+            AIRCRAFT CRASHED
+        </div>
 
         <div class="go-sub" id="final-dist-txt">
             DISTANCE FLOWN: 0 M
@@ -475,90 +493,97 @@
 
         <button
             class="btn-restart-large"
-            id="restart-overlay-btn"
-        >
+            id="restart-overlay-btn">
             RESTART SIMULATION
         </button>
+
     </div>
+
 
     <script>
 
-        /* =========================================================
-           AEROVANTA INTRO CONTROL
-           ========================================================= */
+        // =========================================================
+        // INTRO STATE
+        // =========================================================
 
         let introActive = true;
+        let introStarted = false;
+        let introFinished = false;
 
-        const introScreen = document.getElementById('aerovanta-intro');
+        const introScreen =
+            document.getElementById('aerovanta-intro');
 
-        function launchAerovanta() {
-            if (!introActive) return;
+        const introContent =
+            document.getElementById('intro-content');
 
-            introActive = false;
+        const introTitle =
+            document.getElementById('intro-title');
 
-            introScreen.classList.add('hide');
+        const introSubtitle =
+            document.getElementById('intro-subtitle');
 
-            /*
-             * Remove the intro completely after the fade.
-             * Existing simulator remains untouched.
-             */
-            setTimeout(() => {
-                introScreen.style.display = 'none';
-            }, 600);
+        const introFlash =
+            document.getElementById('intro-flash');
+
+        const cinematicTitle =
+            document.getElementById('intro-cinematic-title');
+
+        const cinematicTitleText =
+            cinematicTitle.querySelector('span');
+
+        // Hide normal simulator UI during intro
+
+        function hideGameUI() {
+
+            document.getElementById('top-bar').style.display = 'none';
+            document.getElementById('throttle-panel').style.display = 'none';
+            document.getElementById('bottom-bar').style.display = 'none';
+
         }
 
-        /*
-         * IMPORTANT:
-         * Use pointerdown so it works with:
-         * - Android touch
-         * - iPhone/iPad touch
-         * - mouse
-         * - trackpad
-         */
-        introScreen.addEventListener('pointerdown', launchAerovanta, {
-            passive: true
-        });
+        function showGameUI() {
 
-        /*
-         * Extra touch fallback for mobile browsers.
-         */
-        introScreen.addEventListener('touchstart', launchAerovanta, {
-            passive: true
-        });
+            document.getElementById('top-bar').style.display = '';
+            document.getElementById('throttle-panel').style.display = '';
+            document.getElementById('bottom-bar').style.display = '';
 
-        /*
-         * Mouse fallback.
-         */
-        introScreen.addEventListener('click', launchAerovanta);
+        }
+
+        hideGameUI();
 
 
-        // --- 1. RENDERER & LIGHTING ---
+        // =========================================================
+        // RENDERER & LIGHTING
+        // =========================================================
 
-        const container = document.getElementById('canvas-container');
+        const container =
+            document.getElementById('canvas-container');
 
         const scene = new THREE.Scene();
 
-        // Atmospheric Distance Fog
         const FOG_COLOR = 0xb4d3ed;
 
-        scene.fog = new THREE.FogExp2(
-            FOG_COLOR,
-            0.00018
-        );
+        scene.fog =
+            new THREE.FogExp2(
+                FOG_COLOR,
+                0.00018
+            );
 
-        const camera = new THREE.PerspectiveCamera(
-            60,
-            window.innerWidth / window.innerHeight,
-            0.1,
-            20000
-        );
+        const camera =
+            new THREE.PerspectiveCamera(
+                60,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                20000
+            );
 
         let cameraMode = 'TPP';
 
-        const renderer = new THREE.WebGLRenderer({
-            antialias: true,
-            powerPreference: "high-performance"
-        });
+        const renderer =
+            new THREE.WebGLRenderer({
+                antialias: true,
+                powerPreference: "high-performance"
+            });
 
         renderer.setSize(
             window.innerWidth,
@@ -570,7 +595,6 @@
         );
 
         renderer.shadowMap.enabled = true;
-
         renderer.shadowMap.type =
             THREE.PCFSoftShadowMap;
 
@@ -582,7 +606,9 @@
         container.appendChild(renderer.domElement);
 
 
-        // Natural Environment Lighting
+        // =========================================================
+        // LIGHTING
+        // =========================================================
 
         const hemiLight =
             new THREE.HemisphereLight(
@@ -631,8 +657,6 @@
         scene.add(sunLight);
 
 
-        // Ambient Fill Light
-
         const fillLight =
             new THREE.DirectionalLight(
                 0x93c5fd,
@@ -648,7 +672,9 @@
         scene.add(fillLight);
 
 
-        // --- 2. PROCEDURAL HIGH-RESOLUTION TEXTURE GENERATORS ---
+        // =========================================================
+        // BUILDING TEXTURE
+        // =========================================================
 
         function createBuildingFacadeTexture() {
 
@@ -678,10 +704,12 @@
                 x < 1024;
                 x += 64
             ) {
+
                 ctx.beginPath();
                 ctx.moveTo(x, 0);
                 ctx.lineTo(x, 1024);
                 ctx.stroke();
+
             }
 
             for (
@@ -696,7 +724,8 @@
                     x += 64
                 ) {
 
-                    const rand = Math.random();
+                    const rand =
+                        Math.random();
 
                     if (rand > 0.45) {
 
@@ -712,6 +741,7 @@
 
                         ctx.fillStyle =
                             '#fef08a';
+
                     }
 
                     ctx.fillRect(
@@ -732,7 +762,9 @@
                         48,
                         20
                     );
+
                 }
+
             }
 
             const texture =
@@ -747,6 +779,10 @@
             return texture;
         }
 
+
+        // =========================================================
+        // ROAD TEXTURE
+        // =========================================================
 
         function createRoadTexture() {
 
@@ -821,6 +857,7 @@
                     6,
                     32
                 );
+
             }
 
             const texture =
@@ -843,7 +880,9 @@
             createRoadTexture();
 
 
-        // --- 3. ATMOSPHERIC SKY & CLOUDS ---
+        // =========================================================
+        // SKY
+        // =========================================================
 
         function createAtmosphericSky() {
 
@@ -926,7 +965,9 @@
         scene.add(skyDome);
 
 
-        // Volumetric Clouds Layer
+        // =========================================================
+        // CLOUDS
+        // =========================================================
 
         function createCloudPuffTexture() {
 
@@ -951,17 +992,17 @@
 
             grad.addColorStop(
                 0,
-                'rgba(255, 255, 255, 0.9)'
+                'rgba(255,255,255,0.9)'
             );
 
             grad.addColorStop(
                 0.5,
-                'rgba(240, 248, 255, 0.4)'
+                'rgba(240,248,255,0.4)'
             );
 
             grad.addColorStop(
                 1,
-                'rgba(255, 255, 255, 0)'
+                'rgba(255,255,255,0)'
             );
 
             ctx.fillStyle = grad;
@@ -984,7 +1025,6 @@
 
         const cloudsGroup =
             new THREE.Group();
-
 
         for (
             let i = 0;
@@ -1024,13 +1064,14 @@
         scene.add(cloudsGroup);
 
 
-        // --- 4. HIGH-DETAIL CANARD DELTA JET FIGHTER ---
+        // =========================================================
+        // AIRCRAFT
+        // =========================================================
 
         function createDeltaFighter() {
 
             const jet =
                 new THREE.Group();
-
 
             const bodyMat =
                 new THREE.MeshStandardMaterial({
@@ -1039,7 +1080,6 @@
                     roughness: 0.2
                 });
 
-
             const wingMat =
                 new THREE.MeshStandardMaterial({
                     color: 0x475569,
@@ -1047,14 +1087,12 @@
                     roughness: 0.25
                 });
 
-
             const darkMat =
                 new THREE.MeshStandardMaterial({
                     color: 0x0f172a,
                     metalness: 0.9,
                     roughness: 0.1
                 });
-
 
             const glassMat =
                 new THREE.MeshStandardMaterial({
@@ -1065,14 +1103,11 @@
                     opacity: 0.75
                 });
 
-
             const engineFlameMat =
                 new THREE.MeshBasicMaterial({
                     color: 0x38bdf8
                 });
 
-
-            // Nose Cone
 
             const noseGeo =
                 new THREE.ConeGeometry(
@@ -1090,12 +1125,11 @@
             nose.rotation.x =
                 -Math.PI / 2;
 
-            nose.position.z = -3.5;
+            nose.position.z =
+                -3.5;
 
             jet.add(nose);
 
-
-            // Fuselage
 
             const bodyGeo =
                 new THREE.CylinderGeometry(
@@ -1117,8 +1151,6 @@
             jet.add(body);
 
 
-            // Canopy
-
             const cockpitGeo =
                 new THREE.SphereGeometry(
                     0.5,
@@ -1126,7 +1158,7 @@
                     16
                 );
 
-            cockpitGeo.scale.set(
+            cockpitGeo.scale(
                 0.85,
                 0.75,
                 2.8
@@ -1146,8 +1178,6 @@
 
             jet.add(cockpit);
 
-
-            // Main Delta Wings
 
             const deltaWingShape =
                 new THREE.Shape();
@@ -1197,7 +1227,6 @@
                     }
                 );
 
-
             const wings =
                 new THREE.Mesh(
                     wingGeo,
@@ -1216,15 +1245,10 @@
             jet.add(wings);
 
 
-            // Vertical Stabilizer
-
             const finShape =
                 new THREE.Shape();
 
-            finShape.moveTo(
-                0,
-                0
-            );
+            finShape.moveTo(0, 0);
 
             finShape.lineTo(
                 0,
@@ -1253,7 +1277,6 @@
                     }
                 );
 
-
             const fin =
                 new THREE.Mesh(
                     finGeo,
@@ -1272,8 +1295,6 @@
             jet.add(fin);
 
 
-            // Engines
-
             const engGeo =
                 new THREE.CylinderGeometry(
                     0.42,
@@ -1281,7 +1302,6 @@
                     1.2,
                     16
                 );
-
 
             const engL =
                 new THREE.Mesh(
@@ -1304,12 +1324,11 @@
             const engR =
                 engL.clone();
 
-            engR.position.x = 0.48;
+            engR.position.x =
+                0.48;
 
             jet.add(engR);
 
-
-            // Engine Flame
 
             const flameGeo =
                 new THREE.ConeGeometry(
@@ -1317,7 +1336,6 @@
                     2.2,
                     12
                 );
-
 
             const flameL =
                 new THREE.Mesh(
@@ -1340,7 +1358,8 @@
             const flameR =
                 flameL.clone();
 
-            flameR.position.x = 0.48;
+            flameR.position.x =
+                0.48;
 
             jet.add(flameR);
 
@@ -1350,7 +1369,6 @@
                 1.4,
                 1.4
             );
-
 
             return jet;
         }
@@ -1368,7 +1386,9 @@
         scene.add(jetGroup);
 
 
-        // --- 5. CHUNK-BASED INFINITE REAL CITY GENERATION ---
+        // =========================================================
+        // CITY
+        // =========================================================
 
         const activeChunks =
             new Map();
@@ -1376,13 +1396,11 @@
         const CHUNK_SIZE = 400;
         const RENDER_DISTANCE = 3;
 
-
         const trunkMat =
             new THREE.MeshStandardMaterial({
                 color: 0x3d2314,
                 roughness: 0.9
             });
-
 
         const leafMat =
             new THREE.MeshStandardMaterial({
@@ -1395,7 +1413,6 @@
 
             const tree =
                 new THREE.Group();
-
 
             const trunk =
                 new THREE.Mesh(
@@ -1426,7 +1443,6 @@
 
             tree.add(leaves);
 
-
             return tree;
         }
 
@@ -1440,7 +1456,6 @@
             const bGroup =
                 new THREE.Group();
 
-
             const baseWidth =
                 45 + Math.random() * 25;
 
@@ -1448,11 +1463,8 @@
                 45 + Math.random() * 25;
 
 
-            // Tier 1
-
             const pHeight =
                 totalHeight * 0.3;
-
 
             const pGeo =
                 new THREE.BoxGeometry(
@@ -1461,16 +1473,13 @@
                     baseDepth
                 );
 
-
             const pTex =
                 bldgTexture.clone();
-
 
             pTex.repeat.set(
                 Math.floor(baseWidth / 12),
                 Math.floor(pHeight / 12)
             );
-
 
             const pMat =
                 new THREE.MeshStandardMaterial({
@@ -1479,13 +1488,11 @@
                     roughness: 0.3
                 });
 
-
             const podium =
                 new THREE.Mesh(
                     pGeo,
                     pMat
                 );
-
 
             podium.position.y =
                 pHeight / 2;
@@ -1496,11 +1503,8 @@
             bGroup.add(podium);
 
 
-            // Tier 2
-
             const tHeight =
                 totalHeight * 0.7;
-
 
             const tGeo =
                 new THREE.BoxGeometry(
@@ -1509,16 +1513,13 @@
                     baseDepth * 0.8
                 );
 
-
             const tTex =
                 bldgTexture.clone();
-
 
             tTex.repeat.set(
                 Math.floor((baseWidth * 0.8) / 12),
                 Math.floor(tHeight / 12)
             );
-
 
             const tMat =
                 new THREE.MeshStandardMaterial({
@@ -1527,24 +1528,21 @@
                     roughness: 0.2
                 });
 
-
             const tower =
                 new THREE.Mesh(
                     tGeo,
                     tMat
                 );
 
-
             tower.position.y =
-                pHeight + tHeight / 2;
+                pHeight +
+                tHeight / 2;
 
             tower.castShadow = true;
             tower.receiveShadow = true;
 
             bGroup.add(tower);
 
-
-            // Tier 3
 
             const hvac =
                 new THREE.Mesh(
@@ -1559,7 +1557,6 @@
                         roughness: 0.3
                     })
                 );
-
 
             hvac.position.y =
                 totalHeight + 2;
@@ -1583,7 +1580,6 @@
                         })
                     );
 
-
                 spire.position.y =
                     totalHeight + 15;
 
@@ -1597,7 +1593,6 @@
                 z
             );
 
-
             return bGroup;
         }
 
@@ -1610,7 +1605,6 @@
             const chunkGroup =
                 new THREE.Group();
 
-
             const startX =
                 cx * CHUNK_SIZE;
 
@@ -1618,14 +1612,11 @@
                 cz * CHUNK_SIZE;
 
 
-            // Ground
-
             const groundGeo =
                 new THREE.PlaneGeometry(
                     CHUNK_SIZE,
                     CHUNK_SIZE
                 );
-
 
             const groundMat =
                 new THREE.MeshStandardMaterial({
@@ -1633,17 +1624,14 @@
                     roughness: 0.9
                 });
 
-
             const ground =
                 new THREE.Mesh(
                     groundGeo,
                     groundMat
                 );
 
-
             ground.rotation.x =
                 -Math.PI / 2;
-
 
             ground.position.set(
                 startX + CHUNK_SIZE / 2,
@@ -1651,13 +1639,10 @@
                 startZ + CHUNK_SIZE / 2
             );
 
-
             ground.receiveShadow = true;
 
             chunkGroup.add(ground);
 
-
-            // Roads
 
             const tileRoadTex =
                 roadTexture.clone();
@@ -1680,17 +1665,14 @@
                     })
                 );
 
-
             roadV.rotation.x =
                 -Math.PI / 2;
-
 
             roadV.position.set(
                 startX + CHUNK_SIZE / 2,
                 0.1,
                 startZ + CHUNK_SIZE / 2
             );
-
 
             roadV.receiveShadow = true;
 
@@ -1709,21 +1691,17 @@
                     })
                 );
 
-
             roadH.rotation.x =
                 -Math.PI / 2;
 
-
             roadH.rotation.z =
                 Math.PI / 2;
-
 
             roadH.position.set(
                 startX + CHUNK_SIZE / 2,
                 0.1,
                 startZ + CHUNK_SIZE / 2
             );
-
 
             roadH.receiveShadow = true;
 
@@ -1732,8 +1710,6 @@
 
             const obstacles = [];
 
-
-            // Trees
 
             for (
                 let z = startZ + 30;
@@ -1763,10 +1739,9 @@
                 );
 
                 chunkGroup.add(tree2);
+
             }
 
-
-            // Buildings
 
             const buildingCoords = [
 
@@ -1798,7 +1773,6 @@
                 const height =
                     60 + Math.random() * 140;
 
-
                 const building =
                     generateBuilding(
                         pos.x,
@@ -1806,20 +1780,18 @@
                         height
                     );
 
-
                 chunkGroup.add(building);
 
-
                 obstacles.push({
-                    box: new THREE.Box3()
-                        .setFromObject(building)
+                    box:
+                        new THREE.Box3()
+                            .setFromObject(building)
                 });
 
             });
 
 
             scene.add(chunkGroup);
-
 
             return {
                 group: chunkGroup,
@@ -1873,48 +1845,63 @@
                     const key =
                         `${cx},${cz}`;
 
-
                     activeKeys.add(key);
 
 
-                    if (!activeChunks.has(key)) {
+                    if (
+                        !activeChunks.has(key)
+                    ) {
 
                         activeChunks.set(
                             key,
                             generateChunk(cx, cz)
                         );
+
                     }
+
                 }
+
             }
 
 
             activeChunks.forEach(
                 (data, key) => {
 
-                    if (!activeKeys.has(key)) {
+                    if (
+                        !activeKeys.has(key)
+                    ) {
 
                         scene.remove(
                             data.group
                         );
 
                         activeChunks.delete(key);
+
                     }
+
                 }
             );
         }
 
 
-        // --- 6. FLIGHT PHYSICS & THROTTLE CONTROLS ---
+        // =========================================================
+        // PHYSICS
+        // =========================================================
 
         let currentSpeed = 450;
+
         let isPaused = false;
+
         let isGameOver = false;
 
         let yawAngle = 0;
+
         let pitchAngle = 0;
+
         let rollAngle = 0;
 
         let targetRoll = 0;
+
         let targetPitch = 0;
 
         let totalDistance = 0;
@@ -1924,7 +1911,6 @@
             document.getElementById(
                 'throttle-slider'
             );
-
 
         const throttleReadout =
             document.getElementById(
@@ -1943,6 +1929,7 @@
 
                 throttleReadout.innerText =
                     `${Math.round(currentSpeed)} KM/H`;
+
             }
         );
 
@@ -1964,11 +1951,11 @@
 
         function updateFlightPhysics() {
 
-            if (isGameOver || isPaused)
-                return;
+            if (
+                isGameOver ||
+                isPaused
+            ) return;
 
-
-            // Throttle
 
             if (
                 keys['ShiftLeft'] ||
@@ -2010,8 +1997,6 @@
             }
 
 
-            // Keyboard Steering
-
             if (
                 keys['ArrowLeft'] ||
                 keys['KeyA']
@@ -2030,9 +2015,12 @@
 
                 yawAngle -= 0.022;
 
-            } else if (!espConnected) {
+            } else if (
+                !espConnected
+            ) {
 
                 targetRoll = 0;
+
             }
 
 
@@ -2050,15 +2038,17 @@
 
                 targetPitch = 25;
 
-            } else if (!espConnected) {
+            } else if (
+                !espConnected
+            ) {
 
                 targetPitch = 0;
+
             }
 
 
             rollAngle +=
                 (targetRoll - rollAngle) * 0.1;
-
 
             pitchAngle +=
                 (targetPitch - pitchAngle) * 0.1;
@@ -2107,8 +2097,6 @@
                 moveDist;
 
 
-            // Altitude Boundaries
-
             if (
                 jetGroup.position.y < 3
             )
@@ -2120,8 +2108,6 @@
             )
                 jetGroup.position.y = 800;
 
-
-            // Sky follows jet
 
             skyDome.position.copy(
                 jetGroup.position
@@ -2138,9 +2124,9 @@
             updateChunks();
 
 
-            // Camera Tracking
-
-            if (cameraMode === 'TPP') {
+            if (
+                cameraMode === 'TPP'
+            ) {
 
                 const offset =
                     new THREE.Vector3(
@@ -2150,7 +2136,6 @@
                     ).applyQuaternion(
                         jetGroup.quaternion
                     );
-
 
                 camera.position.copy(
                     jetGroup.position
@@ -2182,7 +2167,6 @@
                         jetGroup.quaternion
                     );
 
-
                 camera.position.copy(
                     jetGroup.position
                 ).add(offset);
@@ -2201,139 +2185,157 @@
                             )
                         )
                 );
+
             }
+
         }
 
 
-        // --- 7. MPU6050 SERIAL HARDWARE CONNECTOR ---
+        // =========================================================
+        // SERIAL
+        // =========================================================
 
         let espConnected = false;
 
 
-        document.getElementById(
-            'connect-btn'
-        ).addEventListener(
-            'click',
-            async () => {
+        document
+            .getElementById('connect-btn')
+            .addEventListener(
+                'click',
+                async () => {
 
-                if ('serial' in navigator) {
+                    if (
+                        'serial' in navigator
+                    ) {
 
-                    try {
+                        try {
 
-                        const port =
-                            await navigator.serial.requestPort();
+                            const port =
+                                await navigator.serial.requestPort();
 
-                        await port.open({
-                            baudRate: 115200
-                        });
+                            await port.open({
+                                baudRate: 115200
+                            });
 
+                            espConnected = true;
 
-                        espConnected = true;
+                            document
+                                .getElementById(
+                                    'connect-btn'
+                                )
+                                .innerText =
+                                "Connected";
 
-
-                        document.getElementById(
-                            'connect-btn'
-                        ).innerText =
-                            "Connected";
-
-
-                        document.getElementById(
-                            'connect-btn'
-                        ).style.background =
-                            "#38bdf8";
-
-
-                        const textDecoder =
-                            new TextDecoderStream();
-
-
-                        port.readable.pipeTo(
-                            textDecoder.writable
-                        );
+                            document
+                                .getElementById(
+                                    'connect-btn'
+                                )
+                                .style.background =
+                                "#38bdf8";
 
 
-                        const reader =
-                            textDecoder
-                                .readable
-                                .getReader();
+                            const textDecoder =
+                                new TextDecoderStream();
+
+                            port.readable.pipeTo(
+                                textDecoder.writable
+                            );
+
+                            const reader =
+                                textDecoder
+                                    .readable
+                                    .getReader();
 
 
-                        let buffer = "";
+                            let buffer = "";
 
 
-                        while (true) {
+                            while (true) {
 
-                            const {
-                                value,
-                                done
-                            } =
-                                await reader.read();
+                                const {
+                                    value,
+                                    done
+                                } =
+                                    await reader.read();
 
-
-                            if (done)
-                                break;
-
-
-                            buffer += value;
+                                if (done)
+                                    break;
 
 
-                            const lines =
-                                buffer.split('\n');
+                                buffer += value;
+
+                                const lines =
+                                    buffer.split('\n');
+
+                                buffer =
+                                    lines.pop();
 
 
-                            buffer =
-                                lines.pop();
+                                for (
+                                    const line
+                                    of lines
+                                ) {
+
+                                    const parts =
+                                        line
+                                            .trim()
+                                            .split(',');
 
 
-                            for (
-                                const line of lines
-                            ) {
+                                    parts.forEach(
+                                        part => {
 
-                                const parts =
-                                    line
-                                        .trim()
-                                        .split(',');
-
-
-                                parts.forEach(
-                                    part => {
-
-                                        const [k, v] =
-                                            part.split(':');
+                                            const [
+                                                k,
+                                                v
+                                            ] =
+                                                part.split(':');
 
 
-                                        if (k === 'P')
-                                            targetPitch =
-                                                parseFloat(v) || 0;
+                                            if (
+                                                k === 'P'
+                                            )
+                                                targetPitch =
+                                                    parseFloat(v) || 0;
 
 
-                                        if (k === 'R') {
+                                            if (
+                                                k === 'R'
+                                            ) {
 
-                                            targetRoll =
-                                                parseFloat(v) || 0;
+                                                targetRoll =
+                                                    parseFloat(v) || 0;
 
+                                                yawAngle -=
+                                                    (targetRoll / 45) *
+                                                    0.024;
 
-                                            yawAngle -=
-                                                (targetRoll / 45) *
-                                                0.024;
+                                            }
+
                                         }
-                                    }
-                                );
+                                    );
+
+                                }
+
                             }
+
+                        } catch (e) {
+
+                            alert(
+                                "Serial Connection Failed."
+                            );
+
                         }
 
-                    } catch (e) {
-
-                        alert(
-                            "Serial Connection Failed."
-                        );
                     }
+
                 }
-            }
-        );
+            );
 
 
-        // --- 8. COLLISION DETECTION ---
+        // =========================================================
+        // COLLISION
+        // =========================================================
 
         function checkCollisions() {
 
@@ -2362,100 +2364,114 @@
 
                                 isGameOver = true;
 
-
-                                document.getElementById(
-                                    'gameover-overlay'
-                                ).style.display =
+                                document
+                                    .getElementById(
+                                        'gameover-overlay'
+                                    )
+                                    .style.display =
                                     'flex';
 
 
-                                document.getElementById(
-                                    'final-dist-txt'
-                                ).innerText =
+                                document
+                                    .getElementById(
+                                        'final-dist-txt'
+                                    )
+                                    .innerText =
                                     `DISTANCE FLOWN: ${Math.round(totalDistance)} M`;
+
                             }
+
                         }
                     );
+
                 }
             );
+
         }
 
 
-        // --- 9. UI CONTROL LISTENERS ---
+        // =========================================================
+        // UI CONTROLS
+        // =========================================================
 
-        document.getElementById(
-            'view-btn'
-        ).addEventListener(
-            'click',
-            () => {
+        document
+            .getElementById('view-btn')
+            .addEventListener(
+                'click',
+                () => {
 
-                cameraMode =
-                    (cameraMode === 'TPP')
-                        ? 'FPP'
-                        : 'TPP';
+                    cameraMode =
+                        cameraMode === 'TPP'
+                            ? 'FPP'
+                            : 'TPP';
 
+                    document
+                        .getElementById(
+                            'view-btn'
+                        )
+                        .innerText =
+                        `View: ${cameraMode}`;
 
-                document.getElementById(
-                    'view-btn'
-                ).innerText =
-                    `View: ${cameraMode}`;
-            }
-        );
-
-
-        document.getElementById(
-            'pause-btn'
-        ).addEventListener(
-            'click',
-            () => {
-
-                isPaused =
-                    !isPaused;
+                }
+            );
 
 
-                document.getElementById(
-                    'pause-btn'
-                ).innerText =
-                    isPaused
-                        ? 'Resume'
-                        : 'Pause';
-            }
-        );
+        document
+            .getElementById('pause-btn')
+            .addEventListener(
+                'click',
+                () => {
+
+                    isPaused =
+                        !isPaused;
+
+                    document
+                        .getElementById(
+                            'pause-btn'
+                        )
+                        .innerText =
+                        isPaused
+                            ? 'Resume'
+                            : 'Pause';
+
+                }
+            );
 
 
-        document.getElementById(
-            'recenter-btn'
-        ).addEventListener(
-            'click',
-            () => {
+        document
+            .getElementById('recenter-btn')
+            .addEventListener(
+                'click',
+                () => {
 
-                jetGroup.position.set(
-                    0,
-                    85,
-                    0
-                );
+                    jetGroup.position.set(
+                        0,
+                        85,
+                        0
+                    );
 
-                yawAngle = 0;
-                pitchAngle = 0;
-                rollAngle = 0;
-            }
-        );
+                    yawAngle = 0;
+                    pitchAngle = 0;
+                    rollAngle = 0;
 
-
-        document.getElementById(
-            'restart-bar-btn'
-        ).addEventListener(
-            'click',
-            resetSimulation
-        );
+                }
+            );
 
 
-        document.getElementById(
-            'restart-overlay-btn'
-        ).addEventListener(
-            'click',
-            resetSimulation
-        );
+        document
+            .getElementById('restart-bar-btn')
+            .addEventListener(
+                'click',
+                resetSimulation
+            );
+
+
+        document
+            .getElementById('restart-overlay-btn')
+            .addEventListener(
+                'click',
+                resetSimulation
+            );
 
 
         const modal =
@@ -2464,33 +2480,35 @@
             );
 
 
-        document.getElementById(
-            'controls-btn'
-        ).addEventListener(
-            'click',
-            () => {
-                modal.style.display =
-                    'block';
-            }
-        );
+        document
+            .getElementById('controls-btn')
+            .addEventListener(
+                'click',
+                () => {
+                    modal.style.display =
+                        'block';
+                }
+            );
 
 
-        document.getElementById(
-            'close-modal-btn'
-        ).addEventListener(
-            'click',
-            () => {
-                modal.style.display =
-                    'none';
-            }
-        );
+        document
+            .getElementById('close-modal-btn')
+            .addEventListener(
+                'click',
+                () => {
+                    modal.style.display =
+                        'none';
+                }
+            );
 
 
         function resetSimulation() {
 
-            document.getElementById(
-                'gameover-overlay'
-            ).style.display =
+            document
+                .getElementById(
+                    'gameover-overlay'
+                )
+                .style.display =
                 'none';
 
 
@@ -2505,16 +2523,407 @@
             pitchAngle = 0;
             rollAngle = 0;
 
-
             totalDistance = 0;
-
 
             isGameOver = false;
             isPaused = false;
+
         }
 
 
-        // --- 10. ANIMATION LOOP ---
+        // =========================================================
+        // SHORT AEROVANTA CINEMATIC
+        // =========================================================
+
+        function finishIntro() {
+
+            if (introFinished)
+                return;
+
+            introFinished = true;
+            introActive = false;
+
+
+            // Restore exact original startup state
+
+            jetGroup.position.set(
+                0,
+                85,
+                0
+            );
+
+            yawAngle = 0;
+            pitchAngle = 0;
+            rollAngle = 0;
+
+            targetRoll = 0;
+            targetPitch = 0;
+
+            currentSpeed = 450;
+
+            totalDistance = 0;
+
+            isPaused = false;
+            isGameOver = false;
+
+
+            throttleSlider.value =
+                450;
+
+            throttleReadout.innerText =
+                "450 KM/H";
+
+
+            jetGroup.visible = true;
+
+
+            // Restore normal camera
+
+            const originalOffset =
+                new THREE.Vector3(
+                    0,
+                    7,
+                    24
+                ).applyQuaternion(
+                    jetGroup.quaternion
+                );
+
+
+            camera.position.copy(
+                jetGroup.position
+            ).add(originalOffset);
+
+
+            camera.lookAt(
+                jetGroup.position
+                    .clone()
+                    .add(
+                        new THREE.Vector3(
+                            0,
+                            1.5,
+                            -25
+                        ).applyQuaternion(
+                            jetGroup.quaternion
+                        )
+                    )
+            );
+
+
+            // Remove cinematic title
+
+            cinematicTitle.style.opacity =
+                '0';
+
+
+            // Remove intro screen
+
+            introScreen.style.opacity =
+                '0';
+
+            introContent.style.opacity =
+                '0';
+
+
+            setTimeout(() => {
+
+                introScreen.style.display =
+                    'none';
+
+                cinematicTitle.style.display =
+                    'none';
+
+                showGameUI();
+
+            }, 500);
+
+        }
+
+
+        function startIntro() {
+
+            if (
+                introStarted ||
+                introFinished
+            )
+                return;
+
+            introStarted = true;
+
+
+            // Make sure city exists
+
+            try {
+                updateChunks();
+            } catch (e) {
+                // Fail silently.
+                // Simulator can still start.
+            }
+
+
+            const startTime =
+                performance.now();
+
+
+            // Hide title screen text
+
+            introContent.style.transform =
+                'scale(1.12)';
+
+            introContent.style.opacity =
+                '0';
+
+
+            // Reveal environment
+
+            setTimeout(() => {
+
+                if (introFinished)
+                    return;
+
+                introScreen.style.background =
+                    'rgba(3,7,18,0)';
+
+                introScreen.style.pointerEvents =
+                    'none';
+
+                jetGroup.visible = true;
+
+            }, 250);
+
+
+            // Cinematic camera
+
+            setTimeout(() => {
+
+                if (introFinished)
+                    return;
+
+
+                const cinematicStart =
+                    new THREE.Vector3(
+                        -95,
+                        35,
+                        115
+                    );
+
+                camera.position.copy(
+                    cinematicStart
+                );
+
+
+                camera.lookAt(
+                    jetGroup.position
+                );
+
+            }, 350);
+
+
+            // Fast aircraft movement
+
+            setTimeout(() => {
+
+                if (introFinished)
+                    return;
+
+
+                jetGroup.position.set(
+                    -180,
+                    70,
+                    150
+                );
+
+
+                jetGroup.lookAt(
+                    0,
+                    85,
+                    0
+                );
+
+
+                camera.lookAt(
+                    jetGroup.position
+                );
+
+            }, 650);
+
+
+            // Aircraft flyby
+
+            setTimeout(() => {
+
+                if (introFinished)
+                    return;
+
+
+                jetGroup.position.set(
+                    -55,
+                    78,
+                    45
+                );
+
+
+                jetGroup.lookAt(
+                    120,
+                    95,
+                    -250
+                );
+
+
+                camera.position.set(
+                    55,
+                    55,
+                    100
+                );
+
+
+                camera.lookAt(
+                    jetGroup.position
+                );
+
+
+                // Small cinematic flash
+
+                introFlash.style.transition =
+                    'opacity 0.12s ease';
+
+                introFlash.style.opacity =
+                    '0.16';
+
+
+                setTimeout(() => {
+
+                    introFlash.style.opacity =
+                        '0';
+
+                }, 120);
+
+            }, 1100);
+
+
+            // Follow aircraft briefly
+
+            setTimeout(() => {
+
+                if (introFinished)
+                    return;
+
+
+                camera.position.set(
+                    35,
+                    105,
+                    155
+                );
+
+
+                camera.lookAt(
+                    jetGroup.position
+                );
+
+            }, 1450);
+
+
+            // Huge title moment
+
+            setTimeout(() => {
+
+                if (introFinished)
+                    return;
+
+
+                cinematicTitle.style.display =
+                    'flex';
+
+                cinematicTitle.style.opacity =
+                    '1';
+
+                cinematicTitleText.style.transform =
+                    'scale(1)';
+
+            }, 1900);
+
+
+            // Title fades away rapidly
+
+            setTimeout(() => {
+
+                if (introFinished)
+                    return;
+
+
+                cinematicTitle.style.transition =
+                    'opacity 0.45s ease';
+
+                cinematicTitle.style.opacity =
+                    '0';
+
+            }, 2750);
+
+
+            // Return directly into gameplay
+
+            setTimeout(() => {
+
+                finishIntro();
+
+            }, 3350);
+
+
+            // Absolute safety fallback
+
+            setTimeout(() => {
+
+                finishIntro();
+
+            }, 5500);
+
+        }
+
+
+        // =========================================================
+        // TOUCH + MOUSE + POINTER SUPPORT
+        // =========================================================
+
+        function launchFromUserInput(e) {
+
+            if (
+                e &&
+                e.preventDefault
+            ) {
+                e.preventDefault();
+            }
+
+            startIntro();
+
+        }
+
+
+        introScreen.addEventListener(
+            'pointerdown',
+            launchFromUserInput,
+            {
+                passive: false
+            }
+        );
+
+
+        introScreen.addEventListener(
+            'touchstart',
+            launchFromUserInput,
+            {
+                passive: false
+            }
+        );
+
+
+        introScreen.addEventListener(
+            'click',
+            launchFromUserInput
+        );
+
+
+        // =========================================================
+        // ANIMATION LOOP
+        // =========================================================
 
         function animate() {
 
@@ -2523,58 +2932,67 @@
             );
 
 
-            /*
-             * IMPORTANT:
-             * During the AEROVANTA launch screen,
-             * the simulator remains frozen.
-             *
-             * After tapping the intro,
-             * the original game runs normally.
-             */
+            // IMPORTANT:
+            // Existing flight physics are completely
+            // disabled only while intro is running.
+
             if (!introActive) {
 
                 updateFlightPhysics();
 
                 checkCollisions();
 
-                document.getElementById(
-                    'speed-val'
-                ).innerText =
-                    `${Math.round(currentSpeed)} km/h`;
-
-
-                document.getElementById(
-                    'alt-val'
-                ).innerText =
-                    `${Math.round(jetGroup.position.y)} m`;
-
-
-                let degHeading =
-                    Math.round(
-                        (
-                            THREE.MathUtils.radToDeg(
-                                yawAngle
-                            ) % 360 +
-                            360
-                        ) % 360
-                    );
-
-
-                document.getElementById(
-                    'heading-val'
-                ).innerText =
-                    `${String(degHeading).padStart(3, '0')}°`;
             }
+
+
+            document
+                .getElementById(
+                    'speed-val'
+                )
+                .innerText =
+                `${Math.round(currentSpeed)} km/h`;
+
+
+            document
+                .getElementById(
+                    'alt-val'
+                )
+                .innerText =
+                `${Math.round(jetGroup.position.y)} m`;
+
+
+            let degHeading =
+                Math.round(
+                    (
+                        THREE.MathUtils
+                            .radToDeg(
+                                yawAngle
+                            ) %
+                        360 +
+                        360
+                    ) % 360
+                );
+
+
+            document
+                .getElementById(
+                    'heading-val'
+                )
+                .innerText =
+                `${String(degHeading).padStart(3, '0')}°`;
 
 
             renderer.render(
                 scene,
                 camera
             );
+
         }
 
 
-        // Resize
+        // =========================================================
+        // RESIZE
+        // =========================================================
 
         window.addEventListener(
             'resize',
@@ -2584,20 +3002,39 @@
                     window.innerWidth /
                     window.innerHeight;
 
-
                 camera.updateProjectionMatrix();
-
 
                 renderer.setSize(
                     window.innerWidth,
                     window.innerHeight
                 );
+
             }
         );
 
 
-        // Start rendering
-        // Gameplay itself waits until launch.
+        // =========================================================
+        // START
+        // =========================================================
+
+        // Exact original aircraft state
+
+        jetGroup.position.set(
+            0,
+            85,
+            0
+        );
+
+        yawAngle = 0;
+        pitchAngle = 0;
+        rollAngle = 0;
+
+        currentSpeed = 450;
+
+
+        // Start rendering immediately,
+        // but DO NOT start flight physics
+        // until the player launches.
 
         animate();
 
