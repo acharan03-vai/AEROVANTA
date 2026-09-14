@@ -3594,18 +3594,30 @@ function updateUnifiedFlightInput() {
                 1
             );
 
-        } else {
+      } else if (flightInput.touch.active) {
 
-        // Keyboard fallback.
-        flightInput.output.pitch =
-            flightInput.keyboard.pitch;
+    // Touch fallback.
+    flightInput.output.pitch =
+        flightInput.touch.pitch;
 
-        flightInput.output.roll =
-            flightInput.keyboard.roll;
+    flightInput.output.roll =
+        flightInput.touch.roll;
 
-        flightInput.output.yaw =
-            flightInput.keyboard.yaw;
-    }
+    flightInput.output.yaw =
+        flightInput.touch.roll;
+
+} else {
+
+    // Keyboard fallback.
+    flightInput.output.pitch =
+        flightInput.keyboard.pitch;
+
+    flightInput.output.roll =
+        flightInput.keyboard.roll;
+
+    flightInput.output.yaw =
+        flightInput.keyboard.yaw;
+}
 
     flightInput.output.throttle =
         flightInput.keyboard.throttle;
@@ -4786,6 +4798,8 @@ if (k === 'R') {
 
             touchControlActive =
                 true;
+            flightInput.touch.active =
+                true;
 
 
             touchPointerId =
@@ -4864,22 +4878,26 @@ if (k === 'R') {
                 e.clientY;
 
 
-            targetRoll =
-                THREE.MathUtils.clamp(
-                    dx *
-                    TOUCH_ROLL_SENSITIVITY,
-                    -45,
-                    45
-                );
+flightInput.touch.roll =
+    THREE.MathUtils.clamp(
+        (
+            dx *
+            TOUCH_ROLL_SENSITIVITY
+        ) / 45,
+        -1,
+        1
+    );
 
 
-            targetPitch =
-                THREE.MathUtils.clamp(
-                    dy *
-                    TOUCH_PITCH_SENSITIVITY,
-                    -25,
-                    25
-                );
+flightInput.touch.pitch =
+    THREE.MathUtils.clamp(
+        (
+            dy *
+            TOUCH_PITCH_SENSITIVITY
+        ) / 25,
+        -1,
+        1
+    );
 
         },
         {
@@ -4888,39 +4906,51 @@ if (k === 'R') {
     );
 
 
-    function endTouchControl(e) {
+function endTouchControl(e) {
 
-        if (
-            e &&
-            touchPointerId !== null &&
-            e.pointerId !==
-                touchPointerId
-        )
-            return;
-
-
-        touchControlActive =
-            false;
+    if (
+        e &&
+        touchPointerId !== null &&
+        e.pointerId !==
+            touchPointerId
+    )
+        return;
 
 
-        touchPointerId =
-            null;
+    touchControlActive =
+        false;
 
 
-        if (
-            !espConnected
-        ) {
-
-            targetRoll =
-                0;
+    flightInput.touch.active =
+        false;
 
 
-            targetPitch =
-                0;
+    flightInput.touch.roll =
+        0;
 
-        }
+
+    flightInput.touch.pitch =
+        0;
+
+
+    touchPointerId =
+        null;
+
+
+    if (
+        !espConnected
+    ) {
+
+        targetRoll =
+            0;
+
+
+        targetPitch =
+            0;
 
     }
+
+}
 
 
     renderer.domElement.addEventListener(
