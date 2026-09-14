@@ -3441,8 +3441,46 @@
     );
 
 
-    const keys = {};
+   // =========================================================
+// UNIFIED FLIGHT INPUT
+// Keyboard + MPU6050/ESP32 + Touch
+// All input sources feed the same flight-control system.
+// =========================================================
 
+const flightInput = {
+
+    keyboard: {
+        pitch: 0,
+        roll: 0,
+        yaw: 0,
+        throttle: 0
+    },
+
+    hardware: {
+        pitch: 0,
+        roll: 0,
+        yaw: 0,
+        throttle: 0,
+        connected: false
+    },
+
+    touch: {
+        pitch: 0,
+        roll: 0,
+        yaw: 0,
+        throttle: 0,
+        active: false
+    },
+
+    output: {
+        pitch: 0,
+        roll: 0,
+        yaw: 0,
+        throttle: 0
+    }
+};
+
+const keys = {};
 
     window.addEventListener(
         'keydown',
