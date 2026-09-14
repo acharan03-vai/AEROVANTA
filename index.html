@@ -3639,76 +3639,15 @@ function updateUnifiedFlightInput() {
 
         }
 
+        targetRoll =
+            flightInput.output.roll * 45;
 
-        if (
-            keys['ArrowLeft'] ||
-            keys['KeyA']
-        ) {
-
-            targetRoll =
-                -45;
+        yawAngle -=
+            flightInput.output.yaw * 0.022;
 
 
-            yawAngle +=
-                0.022;
-
-        }
-
-        else if (
-            keys['ArrowRight'] ||
-            keys['KeyD']
-        ) {
-
-            targetRoll =
-                45;
-
-
-            yawAngle -=
-                0.022;
-
-        }
-
-        else if (
-            !espConnected &&
-            !touchControlActive
-        ) {
-
-            targetRoll =
-                0;
-
-        }
-
-
-        if (
-            keys['ArrowUp'] ||
-            keys['KeyW']
-        ) {
-
-            targetPitch =
-                -25;
-
-        }
-
-        else if (
-            keys['ArrowDown'] ||
-            keys['KeyS']
-        ) {
-
-            targetPitch =
-                25;
-
-        }
-
-        else if (
-            !espConnected &&
-            !touchControlActive
-        ) {
-
-            targetPitch =
-                0;
-
-        }
-
+        targetPitch =
+            flightInput.output.pitch * 25;
 
         rollAngle +=
             (
