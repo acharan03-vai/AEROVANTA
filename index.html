@@ -3621,11 +3621,7 @@ function updateUnifiedFlightInput() {
             return;
 
 
-        if (
-            keys['ShiftLeft'] ||
-            keys['ShiftRight'] ||
-            keys['KeyI']
-        ) {
+               if (flightInput.output.throttle > 0) {
 
             currentSpeed =
                 Math.min(
@@ -3633,22 +3629,9 @@ function updateUnifiedFlightInput() {
                     currentSpeed + 6
                 );
 
-
-            throttleSlider.value =
-                currentSpeed;
-
-
-            throttleReadout.innerText =
-                `${Math.round(currentSpeed)} KM/H`;
-
         }
 
-
-        if (
-            keys['ControlLeft'] ||
-            keys['ControlRight'] ||
-            keys['KeyK']
-        ) {
+        if (flightInput.output.throttle < 0) {
 
             currentSpeed =
                 Math.max(
@@ -3656,15 +3639,13 @@ function updateUnifiedFlightInput() {
                     currentSpeed - 6
                 );
 
-
-            throttleSlider.value =
-                currentSpeed;
-
-
-            throttleReadout.innerText =
-                `${Math.round(currentSpeed)} KM/H`;
-
         }
+
+        throttleSlider.value =
+            currentSpeed;
+
+        throttleReadout.innerText =
+            `${Math.round(currentSpeed)} KM/H`;
 
         targetRoll =
             flightInput.output.roll * 45;
