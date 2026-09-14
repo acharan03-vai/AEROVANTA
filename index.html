@@ -3543,7 +3543,47 @@ window.addEventListener(
     }
 );
 
+function updateUnifiedFlightInput() {
 
+    // Hardware takes priority when connected.
+    if (flightInput.hardware.connected) {
+
+        flightInput.output.pitch =
+            THREE.MathUtils.clamp(
+                flightInput.hardware.pitch / 25,
+                -1,
+                1
+            );
+
+        flightInput.output.roll =
+            THREE.MathUtils.clamp(
+                flightInput.hardware.roll / 45,
+                -1,
+                1
+            );
+
+        flightInput.output.yaw =
+            THREE.MathUtils.clamp(
+                flightInput.hardware.roll / 45,
+                -1,
+                1
+            );
+
+    } else {
+
+        // Keyboard fallback.
+        flightInput.output.pitch =
+            flightInput.keyboard.pitch;
+
+        flightInput.output.roll =
+            flightInput.keyboard.roll;
+
+        flightInput.output.yaw =
+            flightInput.keyboard.yaw;
+    }
+}
+
+    
     function updateFlightPhysics() {
 
         if (
