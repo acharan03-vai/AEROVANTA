@@ -3594,7 +3594,7 @@ function updateUnifiedFlightInput() {
                 1
             );
 
-    } else {
+        } else {
 
         // Keyboard fallback.
         flightInput.output.pitch =
@@ -3605,11 +3605,11 @@ function updateUnifiedFlightInput() {
 
         flightInput.output.yaw =
             flightInput.keyboard.yaw;
-        flightInput.output.throttle =
-            flightInput.keyboard.throttle;
     }
-}
 
+    flightInput.output.throttle =
+        flightInput.keyboard.throttle;
+}
     
     function updateFlightPhysics() {
          updateUnifiedFlightInput();
