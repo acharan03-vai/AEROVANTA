@@ -3510,6 +3510,21 @@ const keys = {};
         if (e.code === 'KeyE') {
             flightInput.keyboard.yaw = 1;
         }
+        if (
+    e.code === 'ShiftLeft' ||
+    e.code === 'ShiftRight' ||
+    e.code === 'KeyI'
+) {
+    flightInput.keyboard.throttle = 1;
+}
+
+if (
+    e.code === 'ControlLeft' ||
+    e.code === 'ControlRight' ||
+    e.code === 'KeyK'
+) {
+    flightInput.keyboard.throttle = -1;
+}
     }
 );
 
@@ -3540,6 +3555,16 @@ window.addEventListener(
         if (e.code === 'KeyQ' || e.code === 'KeyE') {
             flightInput.keyboard.yaw = 0;
         }
+        if (
+    e.code === 'ShiftLeft' ||
+    e.code === 'ShiftRight' ||
+    e.code === 'KeyI' ||
+    e.code === 'ControlLeft' ||
+    e.code === 'ControlRight' ||
+    e.code === 'KeyK'
+) {
+    flightInput.keyboard.throttle = 0;
+}
     }
 );
 
