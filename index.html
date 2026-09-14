@@ -3976,34 +3976,15 @@ window.addEventListener(
                                             );
 
 
-                                        if (
-                                            k === 'P'
-                                        )
-                                            targetPitch =
-                                                parseFloat(
-                                                    v
-                                                ) || 0;
+                                        if (k === 'P') {
+    flightInput.hardware.pitch =
+        parseFloat(v) || 0;
+}
 
-
-                                        if (
-                                            k === 'R'
-                                        ) {
-
-                                            targetRoll =
-                                                parseFloat(
-                                                    v
-                                                ) || 0;
-
-
-                                            yawAngle -=
-                                                (
-                                                    targetRoll /
-                                                    45
-                                                ) *
-                                                0.024;
-
-                                        }
-
+if (k === 'R') {
+    flightInput.hardware.roll =
+        parseFloat(v) || 0;
+}
                                     }
                                 );
 
