@@ -3623,11 +3623,12 @@ function updateUnifiedFlightInput() {
         flightInput.keyboard.roll;
 
     flightInput.output.yaw =
-        flightInput.keyboard.yaw;
-}
-
-    flightInput.output.throttle =
-        flightInput.keyboard.throttle;
+        THREE.MathUtils.clamp(
+            flightInput.keyboard.roll * 1.5 +
+            flightInput.keyboard.yaw,
+            -1,
+            1
+        );
 }
     
     function updateFlightPhysics() {
