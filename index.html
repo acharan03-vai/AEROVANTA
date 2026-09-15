@@ -4644,24 +4644,6 @@ introScreen.addEventListener(
     }
 );
 
-introScreen.addEventListener(
-    'click',
-    launchFromUserInput
-);
-
-document.addEventListener(
-    'pointerdown',
-    e => {
-        if (!introStarted && !introFinished) {
-            launchFromUserInput(e);
-        }
-    },
-    {
-        passive: false
-    }
-);
-
-
     // =========================================================
     // MOBILE TOUCH FLIGHT CONTROL
     // =========================================================
