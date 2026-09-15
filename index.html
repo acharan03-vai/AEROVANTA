@@ -1039,13 +1039,17 @@
         window.innerHeight
     );
 
+const maxPixelRatio =
+    window.innerWidth <= 700
+        ? 1.25
+        : 1.75;
 
-    renderer.setPixelRatio(
-        Math.min(
-            window.devicePixelRatio,
-            1.75
-        )
-    );
+renderer.setPixelRatio(
+    Math.min(
+        window.devicePixelRatio,
+        maxPixelRatio
+    )
+);
 
     // Better monitor/phone color reproduction in Three.js r128.
     renderer.outputEncoding = THREE.sRGBEncoding;
