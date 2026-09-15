@@ -3593,8 +3593,7 @@ function updateUnifiedFlightInput() {
                 -1,
                 1
             );
-
-      } else if (flightInput.touch.active) {
+} else if (flightInput.touch.active) {
 
     // Touch fallback.
     flightInput.output.pitch =
@@ -3603,11 +3602,15 @@ function updateUnifiedFlightInput() {
     flightInput.output.roll =
         flightInput.touch.roll;
 
+    // Mobile horizontal steering.
     flightInput.output.yaw =
-        flightInput.touch.roll;
+        THREE.MathUtils.clamp(
+            flightInput.touch.roll * 1.5,
+            -1,
+            1
+        );
 
 } else {
-
     // Keyboard fallback.
     flightInput.output.pitch =
         flightInput.keyboard.pitch;
