@@ -927,6 +927,16 @@
             'aerovanta-intro'
         );
 
+    introScreen.addEventListener(
+    'pointerdown',
+    launchFromUserInput,
+    { passive: false }
+);
+
+introScreen.addEventListener(
+    'click',
+    launchFromUserInput
+);
     const introContent =
         document.getElementById(
             'intro-content'
