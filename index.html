@@ -3782,16 +3782,22 @@ jetGroup.position
         forward,
         moveDist
     );
-
-
-// Natural aircraft lift.
-// Faster aircraft produce slightly stronger lift.
-const lift =
+let lift =
     THREE.MathUtils.clamp(
         (currentSpeed - 250) / 900,
         0,
         1
     ) * 0.045;
+
+
+// Excessive pitch at low speed reduces lift.
+if (
+    currentSpeed < 500 &&
+    pitchAngle > 18
+) {
+    lift *= 0.35;
+}
+
 
 
 // Pitch controls the climb/descent attitude.
