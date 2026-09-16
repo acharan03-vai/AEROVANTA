@@ -3739,21 +3739,44 @@ function updateUnifiedFlightInput() {
                 jetGroup.quaternion
             );
 
+const moveDist =
+    (
+        currentSpeed /
+        3.6
+    ) *
+    0.025;
 
-        const moveDist =
-            (
-                currentSpeed /
-                3.6
-            ) *
-            0.025;
+
+jetGroup.position
+    .addScaledVector(
+        forward,
+        moveDist
+    );
 
 
-        jetGroup.position
-            .addScaledVector(
-                forward,
-                moveDist
-            );
+// Natural aircraft lift.
+// Faster aircraft produce slightly stronger lift.
+const lift =
+    THREE.MathUtils.clamp(
+        (currentSpeed - 250) / 900,
+        0,
+        1
+    ) * 0.045;
 
+
+// Pitch controls the climb/descent attitude.
+// Positive pitchAngle = nose up.
+const verticalLift =
+    Math.sin(
+        THREE.MathUtils.degToRad(
+            pitchAngle
+        )
+    ) *
+    lift;
+
+
+jetGroup.position.y +=
+    verticalLift;
 
         totalDistance +=
             moveDist;
