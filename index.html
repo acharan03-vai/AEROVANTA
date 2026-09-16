@@ -3698,12 +3698,23 @@ yawAngle -=
         targetPitch =
             flightInput.output.pitch * 25;
 
-        rollAngle +=
-            (
-                targetRoll -
-                rollAngle
-            ) *
-           0.08;
+      const rollResponse =
+    THREE.MathUtils.lerp(
+        0.10,
+        0.06,
+        THREE.MathUtils.clamp(
+            (currentSpeed - 300) / 1100,
+            0,
+            1
+        )
+    );
+
+rollAngle +=
+    (
+        targetRoll -
+        rollAngle
+    ) *
+    rollResponse;
 
 
         pitchAngle +=
@@ -3711,7 +3722,7 @@ yawAngle -=
                 targetPitch -
                 pitchAngle
             ) *
-            0.16;
+            0.18;
 
 
         const euler =
