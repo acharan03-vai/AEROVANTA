@@ -3682,8 +3682,17 @@ function updateUnifiedFlightInput() {
         targetRoll =
             flightInput.output.roll * 45;
 
-        yawAngle -=
-            flightInput.output.yaw * 0.022;
+       yawAngle -=
+    flightInput.output.yaw * 0.022;
+
+
+// Banking naturally contributes to the turn.
+yawAngle -=
+    Math.sin(
+        THREE.MathUtils.degToRad(
+            rollAngle
+        )
+    ) * 0.008;
 
 
         targetPitch =
