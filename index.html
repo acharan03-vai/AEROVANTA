@@ -3723,7 +3723,18 @@ rollAngle +=
                 pitchAngle
             ) *
             0.18;
+// Stall warning
+const stallRisk =
+    currentSpeed < 500 &&
+    pitchAngle > 18;
 
+if (stallRisk) {
+    cameraShake =
+        Math.max(
+            cameraShake,
+            0.08
+        );
+}
 
         const euler =
             new THREE.Euler(
