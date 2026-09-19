@@ -3583,7 +3583,10 @@ window.addEventListener(
 
 function updateUnifiedFlightInput() {
 
-    // Hardware takes priority when connected.
+    // ---------------------------------------------------------
+    // PITCH
+    // ---------------------------------------------------------
+
     if (flightInput.hardware.connected) {
 
         flightInput.output.pitch =
@@ -3591,55 +3594,116 @@ function updateUnifiedFlightInput() {
                 flightInput.hardware.pitch / 25,
                 -1,
                 1
-            );
+            )
+            +
+            flightInput.keyboard.pitch;
+
+    } else if (flightInput.touch.active) {
+
+        flightInput.output.pitch =
+            flightInput.touch.pitch;
+
+    } else {
+
+        flightInput.output.pitch =
+            flightInput.keyboard.pitch;
+
+    }
+
+
+    // ---------------------------------------------------------
+    // ROLL
+    // ---------------------------------------------------------
+
+    if (flightInput.hardware.connected) {
 
         flightInput.output.roll =
             THREE.MathUtils.clamp(
                 flightInput.hardware.roll / 45,
                 -1,
                 1
-            );
+            )
+            +
+            flightInput.keyboard.roll;
+
+    } else if (flightInput.touch.active) {
+
+        flightInput.output.roll =
+            flightInput.touch.roll;
+
+    } else {
+
+        flightInput.output.roll =
+            flightInput.keyboard.roll;
+
+    }
+
+
+    // ---------------------------------------------------------
+    // YAW
+    // ---------------------------------------------------------
+
+    if (flightInput.hardware.connected) {
+
+        // MPU currently provides pitch + roll only.
+        // Keyboard remains available for yaw.
+
+        flightInput.output.yaw =
+            flightInput.keyboard.yaw;
+
+    } else if (flightInput.touch.active) {
 
         flightInput.output.yaw =
             THREE.MathUtils.clamp(
-                flightInput.hardware.roll / 45,
+                flightInput.touch.roll * 1.5,
                 -1,
                 1
             );
-} else if (flightInput.touch.active) {
 
-    // Touch fallback.
+    } else {
+
+        flightInput.output.yaw =
+            THREE.MathUtils.clamp(
+                flightInput.keyboard.roll * 1.5 +
+                flightInput.keyboard.yaw,
+                -1,
+                1
+            );
+
+    }
+
+
+    // ---------------------------------------------------------
+    // LIMIT COMBINED INPUT
+    // ---------------------------------------------------------
+
     flightInput.output.pitch =
-        flightInput.touch.pitch;
-
-    flightInput.output.roll =
-        flightInput.touch.roll;
-
-    // Mobile horizontal steering.
-    flightInput.output.yaw =
         THREE.MathUtils.clamp(
-            flightInput.touch.roll * 1.5,
+            flightInput.output.pitch,
             -1,
             1
         );
 
-} else {
-    // Keyboard fallback.
-    flightInput.output.pitch =
-        flightInput.keyboard.pitch;
-
     flightInput.output.roll =
-        flightInput.keyboard.roll;
-
-    flightInput.output.yaw =
         THREE.MathUtils.clamp(
-            flightInput.keyboard.roll * 1.5 +
-            flightInput.keyboard.yaw,
+            flightInput.output.roll,
             -1,
             1
         );
-}
-        flightInput.output.throttle =
+
+    flightInput.output.yaw =
+        THREE.MathUtils.clamp(
+            flightInput.output.yaw,
+            -1,
+            1
+        );
+
+
+    // ---------------------------------------------------------
+    // THROTTLE
+    // ---------------------------------------------------------
+
+    flightInput.output.throttle =
         flightInput.keyboard.throttle;
 }
     
