@@ -3936,139 +3936,259 @@ jetGroup.position.y +=
     }
 
 
-    // =========================================================
-    // SERIAL
-    // =========================================================
+  // =========================================================
+// SERIAL
+// =========================================================
 
-    let espConnected = false;
-
-
-    document
-        .getElementById('connect-btn')
-        .addEventListener(
-            'click',
-            async () => {
-
-                if (
-                    'serial' in navigator
-                ) {
-
-                    try {
-
-                        const port =
-                            await navigator
-                                .serial
-                                .requestPort();
+let espConnected = false;
+let serialPort = null;
+let serialReader = null;
+let lastSerialDataTime = 0;
 
 
-                        await port.open({
+// ---------------------------------------------------------
+// HARDWARE DISCONNECT
+// ---------------------------------------------------------
 
-                            baudRate:
-                                115200
+function handleHardwareDisconnect() {
 
-                        });
+    espConnected = false;
 
+    flightInput.hardware.connected = false;
 
-                        espConnected =
-                            true;
-                        flightInput.hardware.connected =
-                            true;
+    flightInput.hardware.pitch = 0;
+    flightInput.hardware.roll = 0;
+    flightInput.hardware.yaw = 0;
+    flightInput.hardware.throttle = 0;
 
+    targetPitch = 0;
+    targetRoll = 0;
 
-                        document
-                            .getElementById(
-                                'connect-btn'
-                            )
-                            .innerText =
-                            "Connected";
+    const connectButton =
+        document.getElementById('connect-btn');
 
+    connectButton.innerText =
+        'Connect Serial';
 
-                        document
-                            .getElementById(
-                                'connect-btn'
-                            )
-                            .style.background =
-                            "#38bdf8";
+    connectButton.style.background =
+        '';
 
-
-                        const textDecoder =
-                            new TextDecoderStream();
+    refreshScoreUI();
+}
 
 
-                        port.readable.pipeTo(
-                            textDecoder.writable
+// ---------------------------------------------------------
+// SERIAL CONNECTION WATCHDOG
+// ---------------------------------------------------------
+
+setInterval(() => {
+
+    if (!espConnected || !serialPort) {
+        return;
+    }
+
+    if (
+        lastSerialDataTime > 0 &&
+        Date.now() - lastSerialDataTime > 1000
+    ) {
+
+        console.log(
+            'MPU watchdog: connection lost'
+        );
+
+        handleHardwareDisconnect();
+
+        if (serialReader) {
+
+            try {
+                serialReader.cancel();
+            } catch (e) {}
+
+        }
+
+        return;
+    }
+
+    if (
+        serialPort.connected === false
+    ) {
+
+        console.log(
+            'MPU port: disconnected'
+        );
+
+        handleHardwareDisconnect();
+
+        if (serialReader) {
+
+            try {
+                serialReader.cancel();
+            } catch (e) {}
+
+        }
+
+    }
+
+}, 250);
+
+
+// ---------------------------------------------------------
+// CONNECT BUTTON
+// ---------------------------------------------------------
+
+document
+    .getElementById('connect-btn')
+    .addEventListener(
+        'click',
+        async () => {
+
+            if (!('serial' in navigator)) {
+
+                alert(
+                    'Web Serial is not supported in this browser.'
+                );
+
+                return;
+            }
+
+            try {
+
+                const port =
+                    await navigator
+                        .serial
+                        .requestPort();
+
+                serialPort = port;
+
+                await serialPort.open({
+                    baudRate: 115200
+                });
+
+                const reader =
+                    serialPort
+                        .readable
+                        .getReader();
+
+                serialReader = reader;
+
+                let buffer = '';
+
+                while (true) {
+
+                    const {
+                        value,
+                        done
+                    } =
+                        await reader.read();
+
+                    if (done) {
+                        break;
+                    }
+
+                    if (!value) {
+                        continue;
+                    }
+
+                    const text =
+                        new TextDecoder()
+                            .decode(value);
+
+                    buffer += text;
+
+                    const lines =
+                        buffer.split('\n');
+
+                    buffer =
+                        lines.pop();
+
+                    for (
+                        const line
+                        of lines
+                    ) {
+
+                        const cleanLine =
+                            line.trim();
+
+                        if (!cleanLine) {
+                            continue;
+                        }
+
+                        const parts =
+                            cleanLine.split(',');
+
+                        let validData = false;
+
+                        parts.forEach(
+                            part => {
+
+                                const [
+                                    k,
+                                    v
+                                ] =
+                                    part.split(':');
+
+                                const number =
+                                    parseFloat(v);
+
+                                if (
+                                    k === 'P' &&
+                                    Number.isFinite(number)
+                                ) {
+
+                                    flightInput
+                                        .hardware
+                                        .pitch =
+                                        number;
+
+                                    validData = true;
+                                }
+
+                                if (
+                                    k === 'R' &&
+                                    Number.isFinite(number)
+                                ) {
+
+                                    flightInput
+                                        .hardware
+                                        .roll =
+                                        number;
+
+                                    validData = true;
+                                }
+
+                            }
                         );
 
+                        if (validData) {
 
-                        const reader =
-                            textDecoder
-                                .readable
-                                .getReader();
+                            lastSerialDataTime =
+                                Date.now();
 
+                            if (!espConnected) {
 
-                        let buffer = "";
+                                espConnected =
+                                    true;
 
+                                flightInput
+                                    .hardware
+                                    .connected =
+                                    true;
 
-                        while (true) {
+                                document
+                                    .getElementById(
+                                        'connect-btn'
+                                    )
+                                    .innerText =
+                                    'Connected';
 
-                            const {
-                                value,
-                                done
-                            } =
-                                await reader.read();
+                                document
+                                    .getElementById(
+                                        'connect-btn'
+                                    )
+                                    .style.background =
+                                    '#38bdf8';
 
-
-                            if (done)
-                                break;
-
-
-                          buffer += value;
-                          console.log('SERIAL:', value);
-
-                            const lines =
-                                buffer.split(
-                                    '\n'
-                                );
-
-
-                            buffer =
-                                lines.pop();
-
-
-                            for (
-                                const line
-                                of lines
-                            ) {
-
-                                const parts =
-                                    line
-                                        .trim()
-                                        .split(',');
-
-
-                                parts.forEach(
-                                    part => {
-
-                                        const [
-                                            k,
-                                            v
-                                        ] =
-                                            part.split(
-                                                ':'
-                                            );
-
-
-                                        if (k === 'P') {
-    flightInput.hardware.pitch =
-        parseFloat(v) || 0;
-}
-
-if (k === 'R') {
-    flightInput.hardware.roll =
-        parseFloat(v) || 0;
-}
-                                    }
-                                );
+                                refreshScoreUI();
 
                             }
 
@@ -4076,19 +4196,74 @@ if (k === 'R') {
 
                     }
 
-                    catch (e) {
+                }
 
-                        alert(
-                            "Serial Connection Failed."
-                        );
+            }
 
-                    }
+            catch (e) {
+
+                console.log(
+                    'Serial disconnected:',
+                    e
+                );
+
+                handleHardwareDisconnect();
+
+            }
+
+            finally {
+
+                if (serialReader) {
+
+                    try {
+                        serialReader.releaseLock();
+                    } catch (e) {}
+
+                    serialReader = null;
 
                 }
 
             }
-        );
 
+        }
+    );
+
+
+// ---------------------------------------------------------
+// PHYSICAL DISCONNECT EVENT
+// ---------------------------------------------------------
+
+if ('serial' in navigator) {
+
+    navigator.serial.addEventListener(
+        'disconnect',
+        event => {
+
+            if (
+                serialPort &&
+                event.target === serialPort
+            ) {
+
+                console.log(
+                    'Web Serial disconnect event'
+                );
+
+                handleHardwareDisconnect();
+
+                if (serialReader) {
+
+                    try {
+                        serialReader.cancel();
+                    } catch (e) {}
+
+                }
+
+            }
+
+        }
+    );
+
+}
 
     // =========================================================
     // COLLISION
