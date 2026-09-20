@@ -4038,6 +4038,42 @@ function handleHardwareDisconnect() {
         '';
 
     refreshScoreUI();
+
+
+    // Stop the current serial reader.
+    if (serialReader) {
+
+        try {
+            serialReader.cancel();
+        } catch (e) {}
+
+    }
+
+
+    // Release the reader lock.
+    if (serialReader) {
+
+        try {
+            serialReader.releaseLock();
+        } catch (e) {}
+
+        serialReader = null;
+
+    }
+
+
+    // Close the serial port.
+    if (serialPort) {
+
+        try {
+
+            serialPort.close()
+                .catch(() => {});
+
+        } catch (e) {}
+
+    }
+
 }
 
 
