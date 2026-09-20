@@ -870,6 +870,15 @@
 
         </p>
 
+<button
+    class="ctrl-btn"
+    style="width:100%; margin-bottom:8px"
+    id="calibrate-mpu-btn">
+
+    Calibrate MPU Neutral
+
+</button>
+        
         <button
             class="ctrl-btn"
             style="width:100%"
@@ -3460,6 +3469,11 @@ renderer.setPixelRatio(
 // All input sources feed the same flight-control system.
 // =========================================================
 
+let mpuNeutralPitch = 0;
+let mpuNeutralRoll = 0;
+let mpuRawPitch = 0;
+let mpuRawRoll = 0;
+    
 const flightInput = {
 
     keyboard: {
@@ -3476,6 +3490,7 @@ const flightInput = {
         throttle: 0,
         connected: false
     },
+
 
     touch: {
         pitch: 0,
@@ -3580,7 +3595,23 @@ window.addEventListener(
 }
     }
 );
+function calibrateMPUNeutral() {
 
+    mpuNeutralPitch =
+        flightInput.hardware.pitch;
+
+    mpuNeutralRoll =
+        flightInput.hardware.roll;
+
+    console.log(
+        'MPU neutral calibrated:',
+        'P =',
+        mpuNeutralPitch,
+        'R =',
+        mpuNeutralRoll
+    );
+
+}
 function updateUnifiedFlightInput() {
 
     // ---------------------------------------------------------
@@ -4313,35 +4344,37 @@ document
                                     parseFloat(v);
 
 
+                               if (
+    k === 'P' &&
+    Number.isFinite(number)
+) {
+
+    mpuRawPitch = number;
+
+    flightInput
+        .hardware
+        .pitch =
+        mpuRawPitch - mpuNeutralPitch;
+
+    validData = true;
+
+}
+
                                 if (
-                                    k === 'P' &&
-                                    Number.isFinite(number)
-                                ) {
+    k === 'R' &&
+    Number.isFinite(number)
+) {
 
-                                    flightInput
-                                        .hardware
-                                        .pitch =
-                                        number;
+    mpuRawRoll = number;
 
-                                    validData = true;
+    flightInput
+        .hardware
+        .roll =
+        mpuRawRoll - mpuNeutralRoll;
 
-                                }
+    validData = true;
 
-
-                                if (
-                                    k === 'R' &&
-                                    Number.isFinite(number)
-                                ) {
-
-                                    flightInput
-                                        .hardware
-                                        .roll =
-                                        number;
-
-                                    validData = true;
-
-                                }
-
+}
                             }
                         );
 
@@ -4627,6 +4660,31 @@ if ('serial' in navigator) {
             }
         );
 
+    document
+    .getElementById('calibrate-mpu-btn')
+    .addEventListener(
+        'click',
+        () => {
+
+            if (
+                !flightInput.hardware.connected
+            ) {
+
+                alert(
+                    'Connect the MPU6050 first.'
+                );
+
+                return;
+            }
+
+            calibrateMPUNeutral();
+
+            alert(
+                'MPU neutral position calibrated.'
+            );
+
+        }
+    );
 
     document
         .getElementById('close-modal-btn')
