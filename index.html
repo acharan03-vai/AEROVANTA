@@ -4000,7 +4000,7 @@ jetGroup.position.y +=
     }
 
 
-  // =========================================================
+ // =========================================================
 // SERIAL
 // =========================================================
 
@@ -4009,12 +4009,77 @@ let serialPort = null;
 let serialReader = null;
 let lastSerialDataTime = 0;
 
+let serialCleanupPromise = null;
+let serialSession = 0;
+
+
+// ---------------------------------------------------------
+// SERIAL CLEANUP
+// ---------------------------------------------------------
+
+async function cleanupSerial() {
+
+    if (serialCleanupPromise) {
+        return serialCleanupPromise;
+    }
+
+    serialCleanupPromise = (async () => {
+
+        const reader = serialReader;
+        const port = serialPort;
+
+        serialReader = null;
+
+        // Stop the reader first.
+        if (reader) {
+
+            try {
+                await reader.cancel();
+            } catch (e) {}
+
+            try {
+                reader.releaseLock();
+            } catch (e) {}
+
+        }
+
+        // Now the readable stream is unlocked,
+        // so the port can actually close.
+        if (port) {
+
+            try {
+                await port.close();
+            } catch (e) {
+
+                console.log(
+                    'Serial close:',
+                    e
+                );
+
+            }
+
+        }
+
+        if (serialPort === port) {
+            serialPort = null;
+        }
+
+    })();
+
+    try {
+        await serialCleanupPromise;
+    } finally {
+        serialCleanupPromise = null;
+    }
+
+}
+
 
 // ---------------------------------------------------------
 // HARDWARE DISCONNECT
 // ---------------------------------------------------------
 
-function handleHardwareDisconnect() {
+async function handleHardwareDisconnect() {
 
     espConnected = false;
 
@@ -4028,6 +4093,8 @@ function handleHardwareDisconnect() {
     targetPitch = 0;
     targetRoll = 0;
 
+    lastSerialDataTime = 0;
+
     const connectButton =
         document.getElementById('connect-btn');
 
@@ -4039,40 +4106,7 @@ function handleHardwareDisconnect() {
 
     refreshScoreUI();
 
-
-    // Stop the current serial reader.
-    if (serialReader) {
-
-        try {
-            serialReader.cancel();
-        } catch (e) {}
-
-    }
-
-
-    // Release the reader lock.
-    if (serialReader) {
-
-        try {
-            serialReader.releaseLock();
-        } catch (e) {}
-
-        serialReader = null;
-
-    }
-
-
-    // Close the serial port.
-    if (serialPort) {
-
-        try {
-
-            serialPort.close()
-                .catch(() => {});
-
-        } catch (e) {}
-
-    }
+    await cleanupSerial();
 
 }
 
@@ -4098,14 +4132,6 @@ setInterval(() => {
 
         handleHardwareDisconnect();
 
-        if (serialReader) {
-
-            try {
-                serialReader.cancel();
-            } catch (e) {}
-
-        }
-
         return;
     }
 
@@ -4118,14 +4144,6 @@ setInterval(() => {
         );
 
         handleHardwareDisconnect();
-
-        if (serialReader) {
-
-            try {
-                serialReader.cancel();
-            } catch (e) {}
-
-        }
 
     }
 
@@ -4151,6 +4169,16 @@ document
                 return;
             }
 
+            // Wait for any previous cleanup.
+            if (serialCleanupPromise) {
+
+                await serialCleanupPromise;
+
+            }
+
+            const thisSession =
+                ++serialSession;
+
             try {
 
                 const port =
@@ -4158,11 +4186,51 @@ document
                         .serial
                         .requestPort();
 
+                // If another connection attempt won
+                // while the chooser was open, stop here.
+                if (
+                    thisSession !== serialSession
+                ) {
+                    return;
+                }
+
                 serialPort = port;
+
+
+                // -------------------------------------------------
+                // SAFETY: if the browser still considers this port
+                // open, close it before opening a new session.
+                // -------------------------------------------------
+
+                if (
+                    serialPort.readable ||
+                    serialPort.writable
+                ) {
+
+                    try {
+
+                        await serialPort.close();
+
+                    } catch (e) {
+
+                        console.log(
+                            'Existing serial session:',
+                            e
+                        );
+
+                    }
+
+                }
+
 
                 await serialPort.open({
                     baudRate: 115200
                 });
+
+
+                // -------------------------------------------------
+                // CREATE READER
+                // -------------------------------------------------
 
                 const reader =
                     serialPort
@@ -4173,7 +4241,14 @@ document
 
                 let buffer = '';
 
-                while (true) {
+
+                // -------------------------------------------------
+                // READ LOOP
+                // -------------------------------------------------
+
+                while (
+                    thisSession === serialSession
+                ) {
 
                     const {
                         value,
@@ -4181,13 +4256,16 @@ document
                     } =
                         await reader.read();
 
+
                     if (done) {
                         break;
                     }
 
+
                     if (!value) {
                         continue;
                     }
+
 
                     const text =
                         new TextDecoder()
@@ -4195,11 +4273,13 @@ document
 
                     buffer += text;
 
+
                     const lines =
                         buffer.split('\n');
 
                     buffer =
                         lines.pop();
+
 
                     for (
                         const line
@@ -4213,10 +4293,12 @@ document
                             continue;
                         }
 
+
                         const parts =
                             cleanLine.split(',');
 
                         let validData = false;
+
 
                         parts.forEach(
                             part => {
@@ -4230,6 +4312,7 @@ document
                                 const number =
                                     parseFloat(v);
 
+
                                 if (
                                     k === 'P' &&
                                     Number.isFinite(number)
@@ -4241,7 +4324,9 @@ document
                                         number;
 
                                     validData = true;
+
                                 }
+
 
                                 if (
                                     k === 'R' &&
@@ -4254,15 +4339,18 @@ document
                                         number;
 
                                     validData = true;
+
                                 }
 
                             }
                         );
 
+
                         if (validData) {
 
                             lastSerialDataTime =
                                 Date.now();
+
 
                             if (!espConnected) {
 
@@ -4274,6 +4362,7 @@ document
                                     .connected =
                                     true;
 
+
                                 document
                                     .getElementById(
                                         'connect-btn'
@@ -4281,12 +4370,14 @@ document
                                     .innerText =
                                     'Connected';
 
+
                                 document
                                     .getElementById(
                                         'connect-btn'
                                     )
                                     .style.background =
                                     '#38bdf8';
+
 
                                 refreshScoreUI();
 
@@ -4303,17 +4394,28 @@ document
             catch (e) {
 
                 console.log(
-                    'Serial disconnected:',
+                    'Serial connection:',
                     e
                 );
 
-                handleHardwareDisconnect();
+                // Only clean up if this is still
+                // the active serial session.
+                if (
+                    thisSession === serialSession
+                ) {
+
+                    await handleHardwareDisconnect();
+
+                }
 
             }
 
             finally {
 
-                if (serialReader) {
+                if (
+                    thisSession === serialSession &&
+                    serialReader
+                ) {
 
                     try {
                         serialReader.releaseLock();
@@ -4350,21 +4452,12 @@ if ('serial' in navigator) {
 
                 handleHardwareDisconnect();
 
-                if (serialReader) {
-
-                    try {
-                        serialReader.cancel();
-                    } catch (e) {}
-
-                }
-
             }
 
         }
     );
 
 }
-
     // =========================================================
     // COLLISION
     // =========================================================
