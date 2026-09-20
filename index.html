@@ -3216,17 +3216,11 @@ renderer.setPixelRatio(
          *
          * Distances are measured from the current aircraft position.
          */
-        const route = [
-            // #1: strong RIGHT deviation + altitude change.
-            { d: 750,  side: 110,  height: 30,  scale: 1.55 },
-
-            // #2: now go LEFT across the route and slightly lower.
-            { d: 1550, side: -310, height: -35, scale: 1.40 },
-
-            // #3: further RIGHT, higher — creates an S-shaped route.
-            { d: 2300, side: 360,  height: 90,  scale: 1.42 }
-        ];
-
+     const route = [
+    { d: 850,  side: 230,  height: 170, scale: 1.55 },
+    { d: 1550, side: -310, height: 170, scale: 1.40 },
+    { d: 2300, side: 360,  height: 190, scale: 1.42 }
+];
         let previousPosition = base.clone();
 
         route.forEach((r, i) => {
