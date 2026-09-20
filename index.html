@@ -3180,93 +3180,125 @@ renderer.setPixelRatio(
         return sprite;
     }
 
-    function seedGates(reset=false) {
-        if (reset) {
-            gates.forEach(g => gateGroup.remove(g.group));
-            gates.length = 0;
-            missionIndex = 0;
-            completedGates = 0;
-        }
+  function seedGates(reset=false) {
 
-        // Never stack an old route on top of a new one.
+    if (reset) {
         gates.forEach(g => gateGroup.remove(g.group));
         gates.length = 0;
 
-        const base = jetGroup.position.clone();
-
-        // Aircraft-local axes.
-        const forward = new THREE.Vector3(0, 0, -1)
-            .applyQuaternion(jetGroup.quaternion)
-            .normalize();
-
-        const right = new THREE.Vector3(1, 0, 0)
-            .applyQuaternion(jetGroup.quaternion)
-            .normalize();
-
-        const up = new THREE.Vector3(0, 1, 0);
-
-        /*
-         * IMPORTANT:
-         * The old route put checkpoint #1 directly on the aircraft's
-         * forward vector at only 260 m. That meant the player could simply
-         * hold straight and collect it.
-         *
-         * This route deliberately introduces lateral + altitude changes.
-         * The first checkpoint is FAR enough away to require a real turn.
-         *
-         * Distances are measured from the current aircraft position.
-         */
-const route = [
-    // #1: within the 1000 m checkpoint limit.
-    { d: 800, side: 220, height: 160, scale: 1.55 },
-
-    // #2: another checkpoint still within the 1000 m range.
-    { d: 820, side: -240, height: 160, scale: 1.40 },
-
-    // #3: slightly farther, but still below the 1000 m limit.
-    { d: 850, side: 250, height: 170, scale: 1.42 }
-];
-        let previousPosition = base.clone();
-
-        route.forEach((r, i) => {
-          const position = base.clone()
-    .add(forward.clone().multiplyScalar(r.d))
-    .add(right.clone().multiplyScalar(r.side))
-    .add(up.clone().multiplyScalar(r.height));
-
-// Never allow a checkpoint to be more than 1000 m
-// from the aircraft when the route is generated.
-const gateOffset = position.clone().sub(base);
-
-if (gateOffset.length() > 950) {
-    gateOffset.setLength(950);
-    position.copy(base).add(gateOffset);
-}
-            // Make the ring face the direction from the previous waypoint
-            // toward this waypoint. This makes the checkpoint feel like a
-            // real flight gate rather than a flat decoration.
-            const routeDirection = position.clone()
-                .sub(previousPosition)
-                .normalize();
-
-            const gate = makeGate(position, 0, r.scale);
-
-            // Ring's default normal is +Z.
-            gate.group.quaternion.setFromUnitVectors(
-                new THREE.Vector3(0, 0, 1),
-                routeDirection
-            );
-
-            gate.routeIndex = i;
-            gate.baseScale = r.scale;
-            gates.push(gate);
-
-            previousPosition.copy(position);
-        });
-
-        updateMissionUI();
+        missionIndex = 0;
+        completedGates = 0;
     }
 
+    // Remove the previous active checkpoint.
+    gates.forEach(g => gateGroup.remove(g.group));
+    gates.length = 0;
+
+    const base = jetGroup.position.clone();
+
+    const forward = new THREE.Vector3(0, 0, -1)
+        .applyQuaternion(jetGroup.quaternion)
+        .normalize();
+
+    const right = new THREE.Vector3(1, 0, 0)
+        .applyQuaternion(jetGroup.quaternion)
+        .normalize();
+
+    /*
+     * ROLLING CHECKPOINT SYSTEM
+     *
+     * Only ONE future checkpoint exists at a time.
+     *
+     * IMPORTANT:
+     * 1000 m is the MAXIMUM ALTITUDE.
+     * It is NOT a distance limit.
+     *
+     * Checkpoints may be much farther than 1000 m away.
+     */
+
+    const forwardDistance = 850;
+
+    // Alternate the course from side to side.
+    const side =
+        completedGates % 2 === 0
+            ? 260
+            : -260;
+
+    /*
+     * Gradual altitude changes.
+     *
+     * The course can move slightly up, stay level,
+     * or move slightly down.
+     *
+     * Hard ceiling: 1000 m.
+     */
+    const altitudeChange =
+        completedGates % 3 === 0
+            ? 35
+            : completedGates % 3 === 1
+                ? -20
+                : 0;
+
+    let targetAltitude =
+        jetGroup.position.y + altitudeChange;
+
+    /*
+     * Keep checkpoints above the main city skyline.
+     * Building heights are roughly 60–200 m.
+     */
+    targetAltitude =
+        Math.max(
+            230,
+            targetAltitude
+        );
+
+    /*
+     * HARD ALTITUDE CEILING.
+     */
+    targetAltitude =
+        Math.min(
+            1000,
+            targetAltitude
+        );
+
+    const position = base.clone()
+        .add(
+            forward.clone()
+                .multiplyScalar(forwardDistance)
+        )
+        .add(
+            right.clone()
+                .multiplyScalar(side)
+        );
+
+    position.y = targetAltitude;
+
+    /*
+     * Aim the checkpoint along the actual route
+     * from the aircraft toward the gate.
+     */
+    const routeDirection = position.clone()
+        .sub(base)
+        .normalize();
+
+    const gate = makeGate(
+        position,
+        0,
+        1.50
+    );
+
+    gate.group.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, 0, 1),
+        routeDirection
+    );
+
+    gate.routeIndex = completedGates;
+    gate.baseScale = 1.50;
+
+    gates.push(gate);
+
+    updateMissionUI();
+}
     function getNextGate() {
         return gates.find(g => !g.passed) || null;
     }
